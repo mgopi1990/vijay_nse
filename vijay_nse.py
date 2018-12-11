@@ -11,14 +11,14 @@ def vijay_nse():
  print (nse)
  
  all_stock_codes = nse.get_stock_codes()
- pprint(all_stock_codes)
+ #pprint(all_stock_codes)
  
- print (nse.is_valid_code('HINDUNILVR'))
+ #print (nse.is_valid_code('HINDUNILVR'))
  
  q = nse.get_quote('HINDUNILVR')
- pprint(q)
+ #pprint(q)
 
-
+# parses commodity data from http://market.mcxdata.in/
 def vijay_mcx():
 
  link = 'http://market.mcxdata.in/'
@@ -39,7 +39,7 @@ def vijay_mcx():
  commodity={}
  for k in mcxTable.findAll('tr'):
   cName = k.find(text=True)
-  if (cName == ''):
+  if (cName == '' or cName == ' '):
    continue;
   #print(cName)
  
@@ -51,11 +51,25 @@ def vijay_mcx():
     continue
    cPropValue = l.find(text=True)
    commodity[cName][cProperty[i]] = cPropValue
-   print(cName + ':' + str(i) + ':' + cProperty[i])
+   #print(cName + ':' + str(i) + ':' + cProperty[i])
    i += 1
  
- pprint(commodity)
+ #pprint(commodity)
+ return (commodity)
  
+def vijay_calc_high_low(commodity, percent=25):
+   for k in commodity.keys():
+      #print (k)
+      high = float(commodity[k]['High'])
+      low  = float(commodity[k]['Low']) 
+      ans  = (high-low) * float(percent)/100
+
+      commodity[k]['VijayUpLimit'] = high + ans
+      commodity[k]['VijayLowLimit'] = high - ans
 
 ## program starts ##
-vijay_mcx()
+commodity = vijay_mcx()
+vijay_calc_high_low(commodity)
+pprint(commodity)
+
+
