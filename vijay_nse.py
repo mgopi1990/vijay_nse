@@ -1,22 +1,30 @@
 #!/home/gopi/gopi/vijay_nse/bin/python3
 
-from nsetools import Nse
+#from nsetools import Nse
 from pprint import pprint
 from urllib.request import urlopen
 from bs4 import BeautifulSoup
 
 
-def vijay_nse():
- nse = Nse()
- print (nse)
- 
- all_stock_codes = nse.get_stock_codes()
- #pprint(all_stock_codes)
- 
- #print (nse.is_valid_code('HINDUNILVR'))
- 
- q = nse.get_quote('HINDUNILVR')
- #pprint(q)
+#def vijay_nse():
+# nse = Nse()
+# print (nse)
+# 
+# all_stock_codes = nse.get_stock_codes()
+# #pprint(all_stock_codes)
+# 
+# #print (nse.is_valid_code('HINDUNILVR'))
+# 
+# q = nse.get_quote('HINDUNILVR')
+# #pprint(q)
+# all_stock_codes = nse.get_stock_codes()
+# #pprint(all_stock_codes)
+# 
+# #print (nse.is_valid_code('HINDUNILVR'))
+# 
+# q = nse.get_quote('HINDUNILVR')
+# #pprint(q)
+
 
 # parses commodity data from http://market.mcxdata.in/
 def vijay_mcx():
