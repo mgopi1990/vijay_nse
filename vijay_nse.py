@@ -4,7 +4,14 @@
 from pprint import pprint
 from urllib.request import urlopen
 from bs4 import BeautifulSoup
+import os
+import datetime
+import csv
 
+## create dbDir within HomeDir manually
+HomeDir = 'C:\\Documents and Settings\\Gopi\\Desktop\\vijay_nse\\'
+DbDir = 'db'
+StatFile = 'vijay_nse'
 
 #def vijay_nse():
 # nse = Nse()
@@ -75,9 +82,48 @@ def vijay_calc_high_low(commodity, percent=25):
       commodity[k]['VijayUpLimit'] = high + ans
       commodity[k]['VijayLowLimit'] = high - ans
 
+def update_db(dbFile, date, commodity):
+	dateStr = date.strftime('%d%b%Y')
+	with open(dbFile, 'a', encoding='utf-8', newline='') as csv_file:
+		csv_writer = csv.writer(csv_file, delimiter=',', quoting=csv.QUOTE_MINIMAL)
+		for k in commodity.keys():
+			csv_writer.writerow([dateStr, k, commodity[k]['Price']])
+
+def touch(fname):
+	open(fname, 'a').close()
+	os.utime(fname, None)
+
 ## program starts ##
+
+## Performs path conversion. Find a better way 
+t1 = HomeDir.split('\\')
+t1[0] = t1[0].replace(':', ':/')
+HomeDir = os.path.join(*t1)
+
+## Gets current time
+now = datetime.datetime.now()
+
+## Check if touch file is updated.
+## If so, just quit.
+## if not updatedb, touch file, quit.
+StatFile = os.path.join(HomeDir, StatFile)
+if (os.path.exists(StatFile)):
+	fs = os.stat(StatFile)
+	mtime = datetime.datetime.fromtimestamp(fs[8])
+
+	## do nothing if we have already updated db	
+	if (now.date() == mtime.date()):
+		exit()
+
+## Get commodity from server
 commodity = vijay_mcx()
-vijay_calc_high_low(commodity)
+
+## Write to db YYYY.csv
+dbFile = os.path.join(HomeDir, DbDir, str(now.year)+ '.csv')
+update_db(dbFile, now, commodity)
+touch(StatFile)
+
+#vijay_calc_high_low(commodity)
 pprint(commodity)
 
 
