@@ -7,6 +7,8 @@ from bs4 import BeautifulSoup
 import os
 import datetime
 import csv
+import sys
+import logging
 
 ## create dbDir within HomeDir manually
 HomeDir = 'C:\\Documents and Settings\\Gopi\\Desktop\\vijay_nse\\'
@@ -83,6 +85,7 @@ def vijay_calc_high_low(commodity, percent=25):
       commodity[k]['VijayLowLimit'] = high - ans
 
 def update_db(dbFile, date, commodity):
+	dbFile = os.path.join(HomeDir, DbDir, str(now.year)+ '.csv')
 	dateStr = date.strftime('%d%b%Y')
 	with open(dbFile, 'a', encoding='utf-8', newline='') as csv_file:
 		csv_writer = csv.writer(csv_file, delimiter=',', quoting=csv.QUOTE_MINIMAL)
@@ -102,28 +105,35 @@ HomeDir = os.path.join(*t1)
 
 ## Gets current time
 now = datetime.datetime.now()
+logging.basicConfig(level=logging.DEBUG, format='[%(asctime)s] %(levelname)s: %(message)s', datefmt='%d-%b-%y %H:%M:%S')
 
-## Check if touch file is updated.
-## If so, just quit.
-## if not updatedb, touch file, quit.
-StatFile = os.path.join(HomeDir, StatFile)
-if (os.path.exists(StatFile)):
-	fs = os.stat(StatFile)
-	mtime = datetime.datetime.fromtimestamp(fs[8])
+if len(sys.argv) > 1 and sys.argv[1] == 'updatedb':
+	## Check if touch file is updated.
+	## If so, just quit.
+	## if not updatedb, touch file, quit.
+	StatFile = os.path.join(HomeDir, StatFile)
+	if (os.path.exists(StatFile)):
+		fs = os.stat(StatFile)
+		mtime = datetime.datetime.fromtimestamp(fs[8])
 
-	## do nothing if we have already updated db	
-	if (now.date() == mtime.date()):
-		exit()
+		## do nothing if we have already updated db	
+		if (now.date() == mtime.date()):
+			logging.debug('Skipping DB update')
+			exit()
 
-## Get commodity from server
-commodity = vijay_mcx()
+	## Get commodity from server
+	commodity = vijay_mcx()
 
-## Write to db YYYY.csv
-dbFile = os.path.join(HomeDir, DbDir, str(now.year)+ '.csv')
-update_db(dbFile, now, commodity)
-touch(StatFile)
+	## Write to db YYYY.csv
+	update_db(now, commodity)
+	touch(StatFile)
+	logging.debug('Data Updated now')
 
-#vijay_calc_high_low(commodity)
-pprint(commodity)
+	#vijay_calc_high_low(commodity)
+	#pprint(commodity)
+else:
+	## Get commodity from server
+	commodity = vijay_mcx()
 
-
+	vijay_calc_high_low(commodity)
+	pprint(commodity)
