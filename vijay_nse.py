@@ -15,6 +15,9 @@ HomeDir = 'C:\\Documents and Settings\\Gopi\\Desktop\\vijay_nse\\'
 DbDir = 'db'
 StatFile = 'vijay_nse'
 
+# Will track only the commodity in the list
+TrackCommodity = ['GOLDM', 'SILVERM', 'COPPERM', 'ALUMINI', 'LEADMINI', 'ZINCMINI', 'NICKELM', 'CRUDEOILM'] 
+
 #def vijay_nse():
 # nse = Nse()
 # print (nse)
@@ -60,6 +63,10 @@ def vijay_mcx():
    continue;
   #print(cName)
  
+  # Track only the commodity in the list
+  if (cName not in TrackCommodity):
+   continue;
+
   commodity.setdefault(cName,{})
   i = 0
   for l in k.findAll('td'):
@@ -72,6 +79,11 @@ def vijay_mcx():
    i += 1
  
  #pprint(commodity)
+
+ for c in TrackCommodity:
+  if c not in commodity.keys():
+   logging.warning('commodity detail [' + c + '] missing')
+   
  return (commodity)
  
 def vijay_calc_high_low(commodity, percent=25):
