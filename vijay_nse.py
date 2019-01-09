@@ -123,6 +123,7 @@ if len(sys.argv) > 1 and sys.argv[1] == 'updatedb':
 	## Check if touch file is updated.
 	## If so, just quit.
 	## if not updatedb, touch file, quit.
+	logging.debug('Trying DB update')
 	StatFile = os.path.join(HomeDir, StatFile)
 	if (os.path.exists(StatFile)):
 		fs = os.stat(StatFile)
