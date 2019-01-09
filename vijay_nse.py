@@ -84,7 +84,7 @@ def vijay_calc_high_low(commodity, percent=25):
       commodity[k]['VijayUpLimit'] = high + ans
       commodity[k]['VijayLowLimit'] = high - ans
 
-def update_db(dbFile, date, commodity):
+def update_db(date, commodity):
 	dbFile = os.path.join(HomeDir, DbDir, str(now.year)+ '.csv')
 	dateStr = date.strftime('%d%b%Y')
 	with open(dbFile, 'a', encoding='utf-8', newline='') as csv_file:
