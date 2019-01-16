@@ -19,7 +19,7 @@ StatFile = 'vijay_nse'
 ## Eg. if the script is run at 2AM then the data taken 
 ## while running from cron is yesterday's data. 
 ## So store with yesterday's date.
-ClosedHours = [ 0, 8 ]
+ClosedHours = [ 1, 9 ]
 
 # Will track only the commodity in the list
 TrackCommodity = ['GOLDM', 'SILVERM', 'COPPERM', 'ALUMINI', 'LEADMINI', 'ZINCMINI', 'NICKELM', 'CRUDEOILM'] 
