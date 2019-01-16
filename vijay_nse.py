@@ -9,6 +9,7 @@ import datetime
 import csv
 import sys
 import logging
+import re
 
 ## create dbDir within HomeDir manually
 HomeDir = 'C:\\Documents and Settings\\Gopi\\Desktop\\vijay_nse\\'
@@ -23,6 +24,12 @@ ClosedHours = [ 1, 9 ]
 
 ## Dont Update days
 SkipDays = [ 'Sat', 'Sun' ]
+
+## default percent
+defaultPercent = 25
+
+## default Days to consider data
+defaultDays = 60
 
 # Will track only the commodity in the list
 TrackCommodity = ['GOLDM', 'SILVERM', 'COPPERM', 'ALUMINI', 'LEADMINI', 'ZINCMINI', 'NICKELM', 'CRUDEOILM'] 
@@ -95,7 +102,7 @@ def vijay_mcx():
    
  return (commodity)
  
-def vijay_calc_high_low(commodity, percent=25):
+def vijay_calc_high_low(commodity, percent):
    for k in commodity.keys():
       #print (k)
       high = float(commodity[k]['High'])
@@ -117,6 +124,14 @@ def touch(fname):
 	open(fname, 'a').close()
 	os.utime(fname, None)
 
+def printHelpAndExit():
+	print('\r' + argv[0] + ' help\tDisplays this message')
+	print('\r' + argv[0] + ' <date>\tProcesses for the date.'
+			   + ' Uses today if no arg is specified')
+	print('\r' + argv[0] + ' days=60\tSet days')
+	print('\r' + argv[0] + ' percent=25\tSet percent')
+	exit()
+
 ## program starts ##
 
 ## Performs path conversion. Find a better way 
@@ -128,7 +143,7 @@ HomeDir = os.path.join(*t1)
 now = datetime.datetime.now()
 logging.basicConfig(level=logging.DEBUG, format='[%(asctime)s] %(levelname)s: %(message)s', datefmt='%d-%b-%y %H:%M:%S')
 
-if len(sys.argv) > 1 and sys.argv[1] == 'updatedb':
+if len(sys.argv) == 2 and sys.argv[1] == 'updatedb':
 	## Check if touch file is updated.
 	## If so, just quit.
 	## if not updatedb, touch file, quit.
@@ -162,8 +177,37 @@ if len(sys.argv) > 1 and sys.argv[1] == 'updatedb':
 	#vijay_calc_high_low(commodity)
 	#pprint(commodity)
 else:
+	percent = defaultPercent
+	days = defaultDays 	
+	date = now
+
+	if len(sys.argv) > 1:
+		for argv in sys.argv[1:]:
+			if (argv == 'help'):
+				printHelpAndExit()
+
+			z=re.match(r'(days|percent)=([0-9]+)', argv)
+			if (z != None):
+				if (z.group(1) == 'days'):
+					days = int(z.group(2))
+				elif (z.group(1) == 'percent'):
+					percent = int(z.group(2))
+				else:
+					print ('Invalid argument')
+					printHelpAndExit()
+			else:
+				try:
+					date = datetime.datetime.strptime(argv,'%d%b%Y')
+				except:
+					print ('Invalid date argument')
+					printHelpAndExit()
+			
+	print (' Date: ' + date.strftime('%d%b%Y') 
+			+ ' days: ' + str(days) 
+			+ ' percent: ' + str(percent))
+
 	## Get commodity from server
 	commodity = vijay_mcx()
 
-	vijay_calc_high_low(commodity)
+	vijay_calc_high_low(commodity, percent)
 	pprint(commodity)
