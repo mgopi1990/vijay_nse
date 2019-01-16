@@ -15,6 +15,12 @@ HomeDir = 'C:\\Documents and Settings\\Gopi\\Desktop\\vijay_nse\\'
 DbDir = 'db'
 StatFile = 'vijay_nse'
 
+## During closed hours, previous day's date will be used.
+## Eg. if the script is run at 2AM then the data taken 
+## while running from cron is yesterday's data. 
+## So store with yesterday's date.
+ClosedHours = [ 0, 8 ]
+
 # Will track only the commodity in the list
 TrackCommodity = ['GOLDM', 'SILVERM', 'COPPERM', 'ALUMINI', 'LEADMINI', 'ZINCMINI', 'NICKELM', 'CRUDEOILM'] 
 
@@ -133,6 +139,10 @@ if len(sys.argv) > 1 and sys.argv[1] == 'updatedb':
 		if (now.date() == mtime.date()):
 			logging.debug('Skipping DB update')
 			exit()
+
+	## Incase the cron is scheduled to run on inactive time
+	if (ClosedHours[0] <= now.hours <= ClosedHours[1]):
+		now -= datetime.timedelta(days=1)
 
 	## Get commodity from server
 	commodity = vijay_mcx()
