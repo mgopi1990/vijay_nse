@@ -21,6 +21,9 @@ StatFile = 'vijay_nse'
 ## So store with yesterday's date.
 ClosedHours = [ 1, 9 ]
 
+## Dont Update days
+SkipDays = [ 'Sat', 'Sun' ]
+
 # Will track only the commodity in the list
 TrackCommodity = ['GOLDM', 'SILVERM', 'COPPERM', 'ALUMINI', 'LEADMINI', 'ZINCMINI', 'NICKELM', 'CRUDEOILM'] 
 
@@ -137,14 +140,18 @@ if len(sys.argv) > 1 and sys.argv[1] == 'updatedb':
 
 		## do nothing if we have already updated db	
 		if (now.date() == mtime.date()):
-			logging.debug('Skipping DB update')
+			logging.debug('Skipping DB update: Already updated')
 			exit()
 
 	## Incase the cron is scheduled to run on inactive time
 	if (ClosedHours[0] <= now.hours <= ClosedHours[1]):
 		now -= datetime.timedelta(days=1)
 
-	## Get commodity from server
+	if (now.strftime('%a') in SkipDays):
+		logging.debug('Skipping DB update: Skipping updates on holidays')
+		exit()
+	
+        ## Get commodity from server
 	commodity = vijay_mcx()
 
 	## Write to db YYYY.csv
