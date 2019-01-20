@@ -12,7 +12,7 @@ import logging
 import re
 
 ## create dbDir within HomeDir manually
-HomeDir = 'C:\\Documents and Settings\\Gopi\\Desktop\\vijay_nse\\'
+HomeDir = '/home/gopi/gopi/vijay_nse/'
 DbDir = 'db'
 StatFile = 'vijay_nse'
 
@@ -102,7 +102,8 @@ def vijay_mcx():
    
  return (commodity)
  
-def vijay_calc_high_low(commodity, percent):
+def vijay_calc_high_low(date, days, percent):
+
    for k in commodity.keys():
       #print (k)
       high = float(commodity[k]['High'])
@@ -119,6 +120,24 @@ def update_db(date, commodity):
 		csv_writer = csv.writer(csv_file, delimiter=',', quoting=csv.QUOTE_MINIMAL)
 		for k in commodity.keys():
 			csv_writer.writerow([dateStr, k, commodity[k]['Price']])
+
+def LoadCommodity(date, days):
+	commodity = {}	
+	DateList = []
+	YearsToLoad = [ (date-datetime.timedelta(days=days)).year ]	
+	if date.year != YearsToLoad[0]:
+		YearsToLoad.append(date.year)
+
+	for i in range(0,days):
+		DateList.append(date.strftime('%d%b%Y'))	
+		date -= datetime.timedelta(days=1)	
+
+	for year in YearsToLoad:
+		dbFile = os.path.join(HomeDir, DbDir, str(year) + '.csv')
+		with open (dbFile, 'r') as cvs_file:
+			csv_reader = csv.reader(csv_file, delimter=',')
+			for row in csv_reader:
+				
 
 def touch(fname):
 	open(fname, 'a').close()
@@ -206,8 +225,6 @@ else:
 			+ ' days: ' + str(days) 
 			+ ' percent: ' + str(percent))
 
-	## Get commodity from server
-	commodity = vijay_mcx()
-
-	vijay_calc_high_low(commodity, percent)
+	commodity,dateList = LoadCommodity(date, days)
+	vijay_calc_high_low(date, days, percent)
 	pprint(commodity)
