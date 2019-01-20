@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 from bs4 import BeautifulSoup
 import pprint
 import os
@@ -6,7 +8,7 @@ import csv
 Dict = {}
 dateList = []
 for file in os.listdir('xls-data'):
- fp = open('xls-data\\' + file, 'r')
+ fp = open('xls-data/' + file, 'r')
  soup = BeautifulSoup(fp, 'html.parser')
  for k in soup.findAll('tr'):
   row = []
