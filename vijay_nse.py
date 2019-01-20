@@ -1,4 +1,4 @@
-#!/home/gopi/gopi/vijay_nse/bin/python3
+#!/usr/bin/env python
 
 #from nsetools import Nse
 from pprint import pprint
@@ -134,10 +134,21 @@ def LoadCommodity(date, days):
 
 	for year in YearsToLoad:
 		dbFile = os.path.join(HomeDir, DbDir, str(year) + '.csv')
-		with open (dbFile, 'r') as cvs_file:
-			csv_reader = csv.reader(csv_file, delimter=',')
+		#print (dbFile)
+		with open (dbFile, 'r') as csv_file:
+			csv_reader = csv.reader(csv_file)
 			for row in csv_reader:
-				
+
+				# load data for wanted dates only
+				if row[0] not in DateList:
+					continue
+
+				# have date, commodity name as index
+				commodity.setdefault(row[0], {})
+				commodity[row[0]].setdefault(row[1], row[2])
+	
+	#pprint (commodity)
+	return commodity, DateList
 
 def touch(fname):
 	open(fname, 'a').close()
@@ -226,5 +237,5 @@ else:
 			+ ' percent: ' + str(percent))
 
 	commodity,dateList = LoadCommodity(date, days)
-	vijay_calc_high_low(date, days, percent)
-	pprint(commodity)
+	#vijay_calc_high_low(date, days, percent)
+	#pprint(commodity)
