@@ -143,9 +143,9 @@ def LoadCommodity(date, days):
 				if row[0] not in DateList:
 					continue
 
-				# have date, commodity name as index
-				commodity.setdefault(row[0], {})
-				commodity[row[0]].setdefault(row[1], row[2])
+				# have commodity name, date as index
+				commodity.setdefault(row[1], {})
+				commodity[row[1]].setdefault(row[0], row[2])
 	
 	#pprint (commodity)
 	return commodity, DateList
@@ -189,7 +189,7 @@ if len(sys.argv) == 2 and sys.argv[1] == 'updatedb':
 			exit()
 
 	## Incase the cron is scheduled to run on inactive time
-	if (ClosedHours[0] <= now.hours <= ClosedHours[1]):
+	if (ClosedHours[0] <= now.hour <= ClosedHours[1]):
 		now -= datetime.timedelta(days=1)
 
 	if (now.strftime('%a') in SkipDays):
