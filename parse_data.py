@@ -17,8 +17,8 @@ for file in os.listdir('xls-data'):
    row.append(val)
   if len(row) < 9:
    continue
-  #print (row)
-  date = row[0].replace(' ','-')
+  date = str(row[0]).replace(' ','')
+  #print (date)
   if date not in dateList:
    dateList.append(date)
   Dict.setdefault(date, {})
