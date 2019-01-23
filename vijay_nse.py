@@ -102,16 +102,27 @@ def vijay_mcx():
    
  return (commodity)
  
-def vijay_calc_high_low(date, days, percent):
+def vijay_calc_high_low(commodity, percent):
 
-   for k in commodity.keys():
-      #print (k)
-      high = float(commodity[k]['High'])
-      low  = float(commodity[k]['Low']) 
-      ans  = (high-low) * float(percent)/100
+	for k in commodity.keys():
+		#print (k)
 
-      commodity[k]['VijayUpLimit'] = high + ans
-      commodity[k]['VijayLowLimit'] = high - ans
+		## Find High Low
+		dateList = list(commodity[k].keys())
+		commodity[k]['High'] = commodity[k][dateList[0]]
+		commodity[k]['Low']  = commodity[k][dateList[0]]
+		for date in dateList[1:]:
+			if commodity[k][date] > commodity[k]['High']:
+				commodity[k]['High'] = commodity[k][date]
+			elif commodity[k][date] < commodity[k]['Low']:
+				commodity[k]['Low'] = commodity[k][date]
+
+		high = float(commodity[k]['High'])
+		low  = float(commodity[k]['Low']) 
+		ans  = (high-low) * float(percent)/100
+		
+		commodity[k]['VijayUpLimit'] = high + ans
+		commodity[k]['VijayLowLimit'] = high - ans
 
 def update_db(date, commodity):
 	dbFile = os.path.join(HomeDir, DbDir, str(now.year)+ '.csv')
@@ -132,6 +143,8 @@ def LoadCommodity(date, days):
 		DateList.append(date.strftime('%d%b%Y'))	
 		date -= datetime.timedelta(days=1)	
 
+	#print(DateList)
+	#print(YearsToLoad)
 	for year in YearsToLoad:
 		dbFile = os.path.join(HomeDir, DbDir, str(year) + '.csv')
 		#print (dbFile)
@@ -145,7 +158,7 @@ def LoadCommodity(date, days):
 
 				# have commodity name, date as index
 				commodity.setdefault(row[1], {})
-				commodity[row[1]].setdefault(row[0], row[2])
+				commodity[row[1]].setdefault(row[0], float(row[2]))
 	
 	#pprint (commodity)
 	return commodity, DateList
@@ -237,5 +250,5 @@ else:
 			+ ' percent: ' + str(percent))
 
 	commodity,dateList = LoadCommodity(date, days)
-	#vijay_calc_high_low(date, days, percent)
+	vijay_calc_high_low(commodity, percent)
 	#pprint(commodity)
