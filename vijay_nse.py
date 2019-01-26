@@ -4,6 +4,8 @@
 from pprint import pprint
 from urllib.request import urlopen
 from bs4 import BeautifulSoup
+from prettytable import PrettyTable
+from termcolor import colored
 import os
 import datetime
 import csv
@@ -123,7 +125,66 @@ def vijay_calc_high_low(commodity, percent):
 		
 		commodity[k]['VijayUpLimit'] = high + ans
 		commodity[k]['VijayLowLimit'] = high - ans
+	
+def UpdateCommodity(commodity, commodity_now):
+	for c in TrackCommodity:
+		commodity[c]['now'] = float(commodity_now[c]['Price'])
+	
+def print_text_table(commodity, dateList):
+	## print Table1
+	t1 = PrettyTable(['Sno', 'Date'] + TrackCommodity)
+	sno = 1
+	for date in dateList:
+		rowData = []
+		rowData.append(str(sno))
+		rowData.append(date)
+		for c in TrackCommodity:
+			if date not in commodity[c].keys():
+				rowData.append('NA')
+				continue
 
+			price = commodity[c][date]
+			if price == commodity[c]['High']:
+				rowData.append(colored(str(price), 'green'))
+			elif price == commodity[c]['Low']:
+				rowData.append(colored(str(price), 'red'))
+			else:
+				rowData.append(str(price))
+		#print (rowData)
+		t1.add_row(rowData)
+		sno += 1
+	print(t1.get_string(title=(str(len(dateList))+" day Data")) + '\n\n')
+
+	## print Table2
+	Title = ['Sno', 'Commodity', 'Low', 'High', 'LowLimit', 'UpLimit', 'now']
+	sno = 1
+	t2 = PrettyTable(Title)
+	for c in TrackCommodity:
+		PriceNow = commodity[c]['now']
+		if PriceNow >= commodity[c]['VijayUpLimit']:
+			t2.add_row([colored(str(sno), 'green'), 
+							colored(c, 'green'), 
+							colored(commodity[c]['Low'], 'green'), 
+							colored(commodity[c]['High'], 'green'),   
+							colored(commodity[c]['VijayLowLimit'], 'green'),  
+							colored(commodity[c]['VijayUpLimit'], 'green'),
+							colored(PriceNow, 'green')])
+		elif PriceNow <= commodity[c]['VijayLowLimit']:
+			t2.add_row([colored(str(sno), 'red'), 
+							colored(c, 'red'), 
+							colored(commodity[c]['Low'], 'red'), 
+							colored(commodity[c]['High'], 'red'),   
+							colored(commodity[c]['VijayLowLimit'], 'red'),  
+							colored(commodity[c]['VijayUpLimit'], 'red'),
+							colored(PriceNow, 'red')])
+		else:	
+			t2.add_row([str(sno), c, 
+						commodity[c]['Low'], commodity[c]['High'], 
+						commodity[c]['VijayLowLimit'], commodity[c]['VijayUpLimit'],
+						PriceNow])
+		sno += 1
+	print(t2.get_string(title="Commodity calc") + '\n\n')
+	
 def update_db(date, commodity):
 	dbFile = os.path.join(HomeDir, DbDir, str(now.year)+ '.csv')
 	dateStr = date.strftime('%d%b%Y')
@@ -251,4 +312,14 @@ else:
 
 	commodity,dateList = LoadCommodity(date, days)
 	vijay_calc_high_low(commodity, percent)
+
+	## Get commodity from server
+	commodity_now = vijay_mcx()
+	#pprint(commodity_now)
+
+	## Updates the commodity_now to the commodity
+	UpdateCommodity(commodity, commodity_now)
+
+	print_text_table(commodity, dateList)
+
 	#pprint(commodity)
