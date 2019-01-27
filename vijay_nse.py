@@ -133,6 +133,7 @@ def UpdateCommodity(commodity, commodity_now):
 def print_text_table(commodity, dateList):
 	## print Table1
 	t1 = PrettyTable(['Sno', 'Date'] + TrackCommodity)
+	t1.title=(str(len(dateList))+" day Data")
 	sno = 1
 	for date in dateList:
 		rowData = []
@@ -145,45 +146,45 @@ def print_text_table(commodity, dateList):
 
 			price = commodity[c][date]
 			if price == commodity[c]['High']:
-				rowData.append(colored(str(price), 'green'))
+				rowData.append(colored(('%0.2f'%price), 'green'))
 			elif price == commodity[c]['Low']:
-				rowData.append(colored(str(price), 'red'))
+				rowData.append(colored(('%0.2f'%price), 'red'))
 			else:
-				rowData.append(str(price))
+				rowData.append('%0.2f'%price)
 		#print (rowData)
 		t1.add_row(rowData)
 		sno += 1
-	print(t1.get_string(title=(str(len(dateList))+" day Data")) + '\n\n')
+	print(t1.get_string() + '\n\n')
 
 	## print Table2
 	Title = ['Sno', 'Commodity', 'Low', 'High', 'LowLimit', 'UpLimit', 'now']
 	sno = 1
 	t2 = PrettyTable(Title)
+	t2.title='Commodity Calc'
 	for c in TrackCommodity:
 		PriceNow = commodity[c]['now']
 		if PriceNow >= commodity[c]['VijayUpLimit']:
 			t2.add_row([colored(str(sno), 'green'), 
 							colored(c, 'green'), 
-							colored(commodity[c]['Low'], 'green'), 
-							colored(commodity[c]['High'], 'green'),   
-							colored(commodity[c]['VijayLowLimit'], 'green'),  
-							colored(commodity[c]['VijayUpLimit'], 'green'),
-							colored(PriceNow, 'green')])
+							colored(('%0.2f'%commodity[c]['Low']), 'green'), 
+							colored(('%0.2f'%commodity[c]['High']), 'green'),   
+							colored(('%0.2f'%commodity[c]['VijayLowLimit']), 'green'),  
+							colored(('%0.2f'%commodity[c]['VijayUpLimit']), 'green'),
+							colored(('%0.2f'%PriceNow), 'green')])
 		elif PriceNow <= commodity[c]['VijayLowLimit']:
 			t2.add_row([colored(str(sno), 'red'), 
 							colored(c, 'red'), 
-							colored(commodity[c]['Low'], 'red'), 
-							colored(commodity[c]['High'], 'red'),   
-							colored(commodity[c]['VijayLowLimit'], 'red'),  
-							colored(commodity[c]['VijayUpLimit'], 'red'),
-							colored(PriceNow, 'red')])
+							colored(('%0.2f'%commodity[c]['Low']), 'red'), 
+							colored(('%0.2f'%commodity[c]['High']), 'red'),   
+							colored(('%0.2f'%commodity[c]['VijayLowLimit']), 'red'),  
+							colored(('%0.2f'%commodity[c]['VijayUpLimit']), 'red'),
+							colored(('%0.2f'%PriceNow), 'red')])
 		else:	
-			t2.add_row([str(sno), c, 
-						commodity[c]['Low'], commodity[c]['High'], 
-						commodity[c]['VijayLowLimit'], commodity[c]['VijayUpLimit'],
-						PriceNow])
+			t2.add_row([str(sno), c, ('%0.2f'%commodity[c]['Low']), ('%0.2f'%commodity[c]['High']), 
+						('%0.2f'%commodity[c]['VijayLowLimit']), ('%0.2f'%commodity[c]['VijayUpLimit']),
+						('%0.2f'%PriceNow)])
 		sno += 1
-	print(t2.get_string(title="Commodity calc") + '\n\n')
+	print(t2.get_string() + '\n\n')
 	
 def update_db(date, commodity):
 	dbFile = os.path.join(HomeDir, DbDir, str(now.year)+ '.csv')
