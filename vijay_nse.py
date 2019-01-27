@@ -123,8 +123,8 @@ def vijay_calc_high_low(commodity, percent):
 		low  = float(commodity[k]['Low']) 
 		ans  = (high-low) * float(percent)/100
 		
-		commodity[k]['VijayUpLimit'] = high + ans
-		commodity[k]['VijayLowLimit'] = high - ans
+		commodity[k]['VijayUpLimit'] = high - ans
+		commodity[k]['VijayLowLimit'] = low + ans
 	
 def UpdateCommodity(commodity, commodity_now):
 	for c in TrackCommodity:
