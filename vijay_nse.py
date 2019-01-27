@@ -31,7 +31,7 @@ SkipDays = [ 'Sat', 'Sun' ]
 defaultPercent = 25
 
 ## default Days to consider data
-defaultDays = 60
+defaultDays = 90
 
 # Will track only the commodity in the list
 TrackCommodity = ['GOLDM', 'SILVERM', 'COPPERM', 'ALUMINI', 'LEADMINI', 'ZINCMINI', 'NICKELM', 'CRUDEOILM'] 
@@ -232,7 +232,7 @@ def printHelpAndExit():
 	print('\r' + argv[0] + ' help\tDisplays this message')
 	print('\r' + argv[0] + ' <date>\tProcesses for the date.'
 			   + ' Uses today if no arg is specified')
-	print('\r' + argv[0] + ' days=60\tSet days')
+	print('\r' + argv[0] + ' days=90\tSet days')
 	print('\r' + argv[0] + ' percent=25\tSet percent')
 	exit()
 
