@@ -188,6 +188,7 @@ def print_text_table(commodity, dateList):
 	
 def update_db(date, commodity):
 	dbFile = os.path.join(HomeDir, DbDir, str(now.year)+ '.csv')
+	#print (dbFile)
 	dateStr = date.strftime('%d%b%Y')
 	with open(dbFile, 'a', encoding='utf-8', newline='') as csv_file:
 		csv_writer = csv.writer(csv_file, delimiter=',', quoting=csv.QUOTE_MINIMAL)
@@ -213,6 +214,7 @@ def LoadCommodity(date, days):
 		with open (dbFile, 'r') as csv_file:
 			csv_reader = csv.reader(csv_file)
 			for row in csv_reader:
+				#print(row)
 
 				# load data for wanted dates only
 				if row[0] not in DateList:
@@ -243,6 +245,7 @@ def printHelpAndExit():
 t1 = HomeDir.split('\\')
 t1[0] = t1[0].replace(':', ':/')
 HomeDir = os.path.join(*t1)
+#print ('\r [' + HomeDir + ']')
 
 ## Gets current time
 now = datetime.datetime.now()
@@ -313,6 +316,8 @@ else:
 
 	commodity,dateList = LoadCommodity(date, days)
 	vijay_calc_high_low(commodity, percent)
+	#pprint(dateList)
+	#pprint(commodity)
 
 	## Get commodity from server
 	commodity_now = vijay_mcx()
