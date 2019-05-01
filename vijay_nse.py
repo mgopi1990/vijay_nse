@@ -146,9 +146,9 @@ def print_text_table(commodity, dateList):
 
 			price = commodity[c][date]
 			if price == commodity[c]['High']:
-				rowData.append(colored(('%0.2f'%price), 'green'))
+				rowData.append(('%0.2f'%price))
 			elif price == commodity[c]['Low']:
-				rowData.append(colored(('%0.2f'%price), 'red'))
+				rowData.append(('%0.2f'%price))
 			else:
 				rowData.append('%0.2f'%price)
 		#print (rowData)
@@ -157,7 +157,7 @@ def print_text_table(commodity, dateList):
 	print(t1.get_string() + '\n\n')
 
 	## print Table2
-	Title = ['Sno', 'Commodity', 'Low', 'High', 'LowLimit', 'UpLimit', 'now']
+	Title = ['Sno', 'Commodity', 'Low', 'High', 'LowLimit', 'UpLimit', 'now', 'Call']
 	sno = 1
 	t2 = PrettyTable(Title)
 	t2.title='Commodity Calc'
@@ -170,7 +170,8 @@ def print_text_table(commodity, dateList):
 							colored(('%0.2f'%commodity[c]['High']), 'green'),   
 							colored(('%0.2f'%commodity[c]['VijayLowLimit']), 'green'),  
 							colored(('%0.2f'%commodity[c]['VijayUpLimit']), 'green'),
-							colored(('%0.2f'%PriceNow), 'green')])
+							colored(('%0.2f'%PriceNow), 'green'),
+							colored('SELL', 'green')])
 		elif PriceNow <= commodity[c]['VijayLowLimit']:
 			t2.add_row([colored(str(sno), 'red'), 
 							colored(c, 'red'), 
@@ -178,11 +179,12 @@ def print_text_table(commodity, dateList):
 							colored(('%0.2f'%commodity[c]['High']), 'red'),   
 							colored(('%0.2f'%commodity[c]['VijayLowLimit']), 'red'),  
 							colored(('%0.2f'%commodity[c]['VijayUpLimit']), 'red'),
-							colored(('%0.2f'%PriceNow), 'red')])
+							colored(('%0.2f'%PriceNow), 'red'),
+							colored('BUY', 'red')])
 		else:	
 			t2.add_row([str(sno), c, ('%0.2f'%commodity[c]['Low']), ('%0.2f'%commodity[c]['High']), 
 						('%0.2f'%commodity[c]['VijayLowLimit']), ('%0.2f'%commodity[c]['VijayUpLimit']),
-						('%0.2f'%PriceNow)])
+						('%0.2f'%PriceNow), ''])
 		sno += 1
 	print(t2.get_string() + '\n\n')
 	
