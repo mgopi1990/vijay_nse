@@ -22,6 +22,9 @@ StatFile = 'vijay_nse'
 ## Eg. if the script is run at 2AM then the data taken 
 ## while running from cron is yesterday's data. 
 ## So store with yesterday's date.
+## Add cron like, 
+## Just run vijay's script 1AM,2AM,3AM,4AM,5AM,6AM,7AM,8AM
+## 0	1-8	*	*	*	/home/pi/vijay_nse/vijay_nse.py updatedb
 ClosedHours = [ 1, 9 ]
 
 ## Dont Update days
