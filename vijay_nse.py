@@ -167,15 +167,6 @@ def print_text_table(commodity, dateList):
 	for c in TrackCommodity:
 		PriceNow = commodity[c]['now']
 		if PriceNow >= commodity[c]['VijayUpLimit']:
-			t2.add_row([colored(str(sno), 'green'), 
-							colored(c, 'green'), 
-							colored(('%0.2f'%commodity[c]['Low']), 'green'), 
-							colored(('%0.2f'%commodity[c]['High']), 'green'),   
-							colored(('%0.2f'%commodity[c]['VijayLowLimit']), 'green'),  
-							colored(('%0.2f'%commodity[c]['VijayUpLimit']), 'green'),
-							colored(('%0.2f'%PriceNow), 'green'),
-							colored('SELL', 'green')])
-		elif PriceNow <= commodity[c]['VijayLowLimit']:
 			t2.add_row([colored(str(sno), 'red'), 
 							colored(c, 'red'), 
 							colored(('%0.2f'%commodity[c]['Low']), 'red'), 
@@ -183,7 +174,16 @@ def print_text_table(commodity, dateList):
 							colored(('%0.2f'%commodity[c]['VijayLowLimit']), 'red'),  
 							colored(('%0.2f'%commodity[c]['VijayUpLimit']), 'red'),
 							colored(('%0.2f'%PriceNow), 'red'),
-							colored('BUY', 'red')])
+							colored('SELL', 'red')])
+		elif PriceNow <= commodity[c]['VijayLowLimit']:
+			t2.add_row([colored(str(sno), 'green'), 
+							colored(c, 'green'), 
+							colored(('%0.2f'%commodity[c]['Low']), 'green'), 
+							colored(('%0.2f'%commodity[c]['High']), 'green'),   
+							colored(('%0.2f'%commodity[c]['VijayLowLimit']), 'green'),  
+							colored(('%0.2f'%commodity[c]['VijayUpLimit']), 'green'),
+							colored(('%0.2f'%PriceNow), 'green'),
+							colored('BUY', 'green')])
 		else:	
 			t2.add_row([str(sno), c, ('%0.2f'%commodity[c]['Low']), ('%0.2f'%commodity[c]['High']), 
 						('%0.2f'%commodity[c]['VijayLowLimit']), ('%0.2f'%commodity[c]['VijayUpLimit']),
@@ -219,7 +219,7 @@ def LoadCommodity(date, days):
 		with open (dbFile, 'r') as csv_file:
 			csv_reader = csv.reader(csv_file)
 			for row in csv_reader:
-				#print(row)
+				#print (row)
 
 				# load data for wanted dates only
 				if row[0] not in DateList:
