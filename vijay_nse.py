@@ -6,6 +6,9 @@ from urllib.request import urlopen
 from bs4 import BeautifulSoup
 from prettytable import PrettyTable
 from termcolor import colored
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+import smtplib, ssl
 import os
 import datetime
 import csv
@@ -17,6 +20,7 @@ import re
 HomeDir = '/home/gopi/gopi/vijay_nse/'
 DbDir = 'db'
 StatFile = 'vijay_nse'
+MailFile = 'mail.cfg'
 
 ## During closed hours, previous day's date will be used.
 ## Eg. if the script is run at 2AM then the data taken 
@@ -200,7 +204,117 @@ def print_text_table(commodity, dateList, arg):
 						('%0.2f'%PriceNow), ''])
 		sno += 1
 	print(t2.get_string() + '\n\n')
+
+def mail_get_info_from_file (FileName):
+	dict_mail = {}
+	try:
+		fp = open (FileName, 'r')
+	except:
+		print (' ERROR: ' + FileName + ' not found')
+		return None
+	else:
+		for line in fp:
+			t1 = line.split(':')
+			key = t1[0].strip().lower()
+			if (key == 'from'):
+				dict_mail[key] = t1[1].strip()
+			elif (key == 'to'):
+				val = t1[1].split(',')
+				dict_mail[key] = [ x.strip() for x in val ] 
+			elif (key == 'password'):
+				dict_mail[key] = t1[1].strip()
+			elif (key == 'server'):
+				dict_mail[key] = t1[1].strip()
+				dict_mail['port'] = int(t1[2].strip())
+			else:
+				print (' ERROR: Parse failed [' + line + ']')
+				return None
+
+		if len (dict_mail) != 5:
+			print (' ERROR: Need all 5 params (from, to, password, server, port)')
+			return None
+	return dict_mail
+
+def mail_text_table(commodity, dateList, arg):
+	dict_mail = mail_get_info_from_file (os.path.join(HomeDir, MailFile))
+	if (dict_mail == None):
+		return 
+
+	#pprint (dict_mail)
 	
+	htmlData = ('<html><body><h1>' 
+				+ ' Date: ' + arg['Date'] 
+				+ ' days: ' + arg['days'] 
+				+ ' percent: ' + arg['percent']
+				+ '</h1>')
+
+	### print Table1
+	tList = ['Sno', 'Date']	+ TrackCommodity
+	htmlData += ('<table><th colspan="' + str(len(tList)) + '"><td>' 
+				+ str(len(dateList)) + ' day Data </td></th>'
+				+ '<th><td>' + '</td><td>'.join(tList) + '</td></th>')
+
+	sno = 1
+	for date in dateList:
+		rowData = PrepareRowData(sno, date, commodity)
+		htmlData += ('<tr><td>' + '</td><td>'.join(rowData) + '</td></tr>')
+		sno += 1
+	htmlData += '</table><br><br>'
+
+	### print Table2
+	Title = ['Sno', 'Commodity', 'Low', 'High', 'LowLimit', 'UpLimit', 'now', 'Call']
+	sno = 1
+	htmlData += '<table><th colspan="' + str(len(Title)) + '><td>Commodity Calc</td></th>'
+	for c in TrackCommodity:
+		PriceNow = commodity[c]['now']
+		if PriceNow >= commodity[c]['VijayUpLimit']:
+			htmlData += ('<tr class="sell"><td>' + str(sno) + '</td>'
+						+ '<td>' + c + '</td>'
+						+ '<td>' + '%0.2f'%commodity[c]['Low'] + '</td>'
+						+ '<td>' + '%0.2f'%commodity[c]['High'] + '</td>'  
+						+ '<td>' + '%0.2f'%commodity[c]['VijayLowLimit'] + '</td>' 
+						+ '<td>' + '%0.2f'%commodity[c]['VijayUpLimit'] + '</td>'
+						+ '<td>' + '%0.2f'%PriceNow + '</td>'
+						+ '<td>' + 'SELL' + '</td></tr>')
+		elif PriceNow <= commodity[c]['VijayLowLimit']:
+			htmlData += ('<tr class="buy"><td>' + str(sno) + '</td>'
+						+ '<td>' + c + '</td>'
+						+ '<td>' + '%0.2f'%commodity[c]['Low'] + '</td>'
+						+ '<td>' + '%0.2f'%commodity[c]['High'] + '</td>'  
+						+ '<td>' + '%0.2f'%commodity[c]['VijayLowLimit'] + '</td>' 
+						+ '<td>' + '%0.2f'%commodity[c]['VijayUpLimit'] + '</td>'
+						+ '<td>' + '%0.2f'%PriceNow + '</td>'
+						+ '<td>' + 'BUY' + '</td></tr>')
+		else:	
+			htmlData += ('<tr class="none"><td>' + str(sno) + '</td>'
+						+ '<td>' + c + '</td>'
+						+ '<td>' + '%0.2f'%commodity[c]['Low'] + '</td>'
+						+ '<td>' + '%0.2f'%commodity[c]['High'] + '</td>'  
+						+ '<td>' + '%0.2f'%commodity[c]['VijayLowLimit'] + '</td>' 
+						+ '<td>' + '%0.2f'%commodity[c]['VijayUpLimit'] + '</td>'
+						+ '<td>' + '%0.2f'%PriceNow + '</td>'
+						+ '<td>' + '' + '</td></tr>')
+		htmlData += '</table></br></br></body></html>'
+
+	print (htmlData)	
+
+	message = MIMEMultipart('alternative')
+	message['Subject'] = (' VijayNSE Date: ' + arg['Date'] 
+							+ ' days: ' + arg['days'] 
+							+ ' percent: ' + arg['percent'])
+	message['From'] = dict_mail['from']
+	message['To'] 	= dict_mail['to']
+	message.attach(MIMEText(htmlData, "html"))
+	print (message.as_string())
+
+	# Create secure connection with server and send email
+	cxt = ssl.create_default_context()
+	with smtplib.SMTP_SSL(dict_mail['server'], dict_mail['port'], context=cxt) as server:
+		server.login(dict_mail['from'], dict_mail['password'])
+		server.sendmail(dict_mail['from'], dict_mail['to'], message.as_string())
+
+	return
+
 def update_db(date, commodity):
 	dbFile = os.path.join(HomeDir, DbDir, str(now.year)+ '.csv')
 	#print (dbFile)
@@ -343,5 +457,6 @@ else:
 	UpdateCommodity(commodity, commodity_now)
 
 	print_text_table(commodity, dateList, arg)
+	#mail_text_table (commodity, dateList, arg)
 
 	#pprint(commodity)
