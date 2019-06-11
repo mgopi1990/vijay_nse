@@ -132,6 +132,26 @@ def vijay_calc_high_low(commodity, percent):
 def UpdateCommodity(commodity, commodity_now):
 	for c in TrackCommodity:
 		commodity[c]['now'] = float(commodity_now[c]['Price'])
+
+def PrepareRowData(sno, date, commodity):
+	rowData = []
+	rowData.append(str(sno))
+	rowData.append(date)
+	for c in TrackCommodity:
+		if date not in commodity[c].keys():
+			rowData.append('NA')
+			continue
+
+		price = commodity[c][date]
+		if price == commodity[c]['High']:
+			rowData.append(('%0.2f'%price))
+		elif price == commodity[c]['Low']:
+			rowData.append(('%0.2f'%price))
+		else:
+			rowData.append('%0.2f'%price)
+
+	#print (rowData)
+	return rowData
 	
 def print_text_table(commodity, dateList):
 	## print Table1
@@ -139,22 +159,7 @@ def print_text_table(commodity, dateList):
 	t1.title=(str(len(dateList))+" day Data")
 	sno = 1
 	for date in dateList:
-		rowData = []
-		rowData.append(str(sno))
-		rowData.append(date)
-		for c in TrackCommodity:
-			if date not in commodity[c].keys():
-				rowData.append('NA')
-				continue
-
-			price = commodity[c][date]
-			if price == commodity[c]['High']:
-				rowData.append(('%0.2f'%price))
-			elif price == commodity[c]['Low']:
-				rowData.append(('%0.2f'%price))
-			else:
-				rowData.append('%0.2f'%price)
-		#print (rowData)
+		rowData = PrepareRowData(sno, date, commodity)
 		t1.add_row(rowData)
 		sno += 1
 	print(t1.get_string() + '\n\n')
