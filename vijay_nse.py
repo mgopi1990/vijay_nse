@@ -153,7 +153,12 @@ def PrepareRowData(sno, date, commodity):
 	#print (rowData)
 	return rowData
 	
-def print_text_table(commodity, dateList):
+def print_text_table(commodity, dateList, arg):
+
+	print (' Date: ' + arg['Date'] 
+			+ ' days: ' + arg['days'] 
+			+ ' percent: ' + arg['percent'])
+
 	## print Table1
 	t1 = PrettyTable(['Sno', 'Date'] + TrackCommodity)
 	t1.title=(str(len(dateList))+" day Data")
@@ -320,9 +325,10 @@ else:
 					print ('Invalid date argument')
 					printHelpAndExit()
 			
-	print (' Date: ' + date.strftime('%d%b%Y') 
-			+ ' days: ' + str(days) 
-			+ ' percent: ' + str(percent))
+	arg = {}
+	arg['Date'] = date.strftime('%d%b%Y')
+	arg['days'] = str(days)
+	arg['percent'] = str(percent)
 
 	commodity,dateList = LoadCommodity(date, days)
 	vijay_calc_high_low(commodity, percent)
@@ -336,6 +342,6 @@ else:
 	## Updates the commodity_now to the commodity
 	UpdateCommodity(commodity, commodity_now)
 
-	print_text_table(commodity, dateList)
+	print_text_table(commodity, dateList, arg)
 
 	#pprint(commodity)
