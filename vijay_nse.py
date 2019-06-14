@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #from nsetools import Nse
 from pprint import pprint
@@ -220,7 +220,7 @@ def mail_get_info_from_file (FileName):
 				dict_mail[key] = t1[1].strip()
 			elif (key == 'to'):
 				val = t1[1].split(',')
-				dict_mail[key] = [ x.strip() for x in val ] 
+				dict_mail[key] = ','.join([ x.strip() for x in val ])
 			elif (key == 'password'):
 				dict_mail[key] = t1[1].strip()
 			elif (key == 'server'):
@@ -250,9 +250,9 @@ def mail_text_table(commodity, dateList, arg):
 
 	### print Table1
 	tList = ['Sno', 'Date']	+ TrackCommodity
-	htmlData += ('<table><th colspan="' + str(len(tList)) + '"><td>' 
-				+ str(len(dateList)) + ' day Data </td></th>'
-				+ '<th><td>' + '</td><td>'.join(tList) + '</td></th>')
+	htmlData += ('<table><tr><th colspan="' + str(len(tList)) + '">' 
+				+ str(len(dateList)) + ' day Data </th></tr>'
+				+ '<tr><th>' + '</th><th>'.join(tList) + '</th></tr>')
 
 	sno = 1
 	for date in dateList:
@@ -263,8 +263,9 @@ def mail_text_table(commodity, dateList, arg):
 
 	### print Table2
 	Title = ['Sno', 'Commodity', 'Low', 'High', 'LowLimit', 'UpLimit', 'now', 'Call']
+	htmlData += '<table><tr><th colspan="' + str(len(Title)) + '">Commodity Calc</th></tr>'
+	htmlData += '<tr><th>' + '</th><th>'.join(Title) + '</th></tr>'
 	sno = 1
-	htmlData += '<table><th colspan="' + str(len(Title)) + '><td>Commodity Calc</td></th>'
 	for c in TrackCommodity:
 		PriceNow = commodity[c]['now']
 		if PriceNow >= commodity[c]['VijayUpLimit']:
@@ -294,9 +295,11 @@ def mail_text_table(commodity, dateList, arg):
 						+ '<td>' + '%0.2f'%commodity[c]['VijayUpLimit'] + '</td>'
 						+ '<td>' + '%0.2f'%PriceNow + '</td>'
 						+ '<td>' + '' + '</td></tr>')
-		htmlData += '</table></br></br></body></html>'
+	htmlData += '</table></br></br>'
 
-	print (htmlData)	
+	htmlData += '</body></html>'
+
+	#print (htmlData)	
 
 	message = MIMEMultipart('alternative')
 	message['Subject'] = (' VijayNSE Date: ' + arg['Date'] 
@@ -305,7 +308,7 @@ def mail_text_table(commodity, dateList, arg):
 	message['From'] = dict_mail['from']
 	message['To'] 	= dict_mail['to']
 	message.attach(MIMEText(htmlData, "html"))
-	print (message.as_string())
+	#print (message.as_string())
 
 	# Create secure connection with server and send email
 	cxt = ssl.create_default_context()
@@ -457,6 +460,6 @@ else:
 	UpdateCommodity(commodity, commodity_now)
 
 	print_text_table(commodity, dateList, arg)
-	#mail_text_table (commodity, dateList, arg)
+	mail_text_table (commodity, dateList, arg)
 
 	#pprint(commodity)
