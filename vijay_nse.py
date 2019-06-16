@@ -363,6 +363,33 @@ def LoadCommodity(date, days):
 	#pprint (commodity)
 	return commodity, DateList
 
+def process_commodity (date, days, percent, console=True, mail=False):
+	arg = {}
+	arg['Date'] = date.strftime('%d%b%Y')
+	arg['days'] = str(days)
+	arg['percent'] = str(percent)
+
+	commodity,dateList = LoadCommodity(date, days)
+	vijay_calc_high_low(commodity, percent)
+
+	#pprint(dateList)
+	#pprint(commodity)
+
+	## Get commodity from server
+	commodity_now = vijay_mcx()
+	#pprint(commodity_now)
+
+	## Updates the commodity_now to the commodity
+	UpdateCommodity(commodity, commodity_now)
+
+	if console:
+		print_text_table(commodity, dateList, arg)
+
+	if mail:
+		mail_text_table (commodity, dateList, arg)
+
+	#pprint(commodity)
+
 def touch(fname):
 	open(fname, 'a').close()
 	os.utime(fname, None)
@@ -381,6 +408,7 @@ def printHelpAndExit():
 t1 = HomeDir.split('\\')
 t1[0] = t1[0].replace(':', ':/')
 HomeDir = os.path.join(*t1)
+
 #print ('\r [' + HomeDir + ']')
 
 ## Gets current time
@@ -418,17 +446,24 @@ if len(sys.argv) == 2 and sys.argv[1] == 'updatedb':
 	touch(StatFile)
 	logging.debug('Data Updated now')
 
+	## Sends mail
+	process_commodity (date, days, percent, console=False, mail=True)
+
 	#vijay_calc_high_low(commodity)
 	#pprint(commodity)
 else:
 	percent = defaultPercent
 	days = defaultDays 	
 	date = now
+	mail = False
 
 	if len(sys.argv) > 1:
 		for argv in sys.argv[1:]:
 			if (argv == 'help'):
 				printHelpAndExit()
+			elif (argv == 'mail'):
+				mail = True
+				continue
 
 			z=re.match(r'(days|percent)=([0-9]+)', argv)
 			if (z != None):
@@ -445,25 +480,5 @@ else:
 				except:
 					print ('Invalid date argument')
 					printHelpAndExit()
-			
-	arg = {}
-	arg['Date'] = date.strftime('%d%b%Y')
-	arg['days'] = str(days)
-	arg['percent'] = str(percent)
 
-	commodity,dateList = LoadCommodity(date, days)
-	vijay_calc_high_low(commodity, percent)
-	#pprint(dateList)
-	#pprint(commodity)
-
-	## Get commodity from server
-	commodity_now = vijay_mcx()
-	#pprint(commodity_now)
-
-	## Updates the commodity_now to the commodity
-	UpdateCommodity(commodity, commodity_now)
-
-	print_text_table(commodity, dateList, arg)
-	mail_text_table (commodity, dateList, arg)
-
-	#pprint(commodity)
+	process_commodity (date, days, percent, mail=mail)
