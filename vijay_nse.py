@@ -295,6 +295,8 @@ def mail_text_table(commodity, dateList, arg):
 						+ '<td>' + '%0.2f'%commodity[c]['VijayUpLimit'] + '</td>'
 						+ '<td>' + '%0.2f'%PriceNow + '</td>'
 						+ '<td>' + '' + '</td></tr>')
+		sno += 1
+
 	htmlData += '</table></br></br>'
 
 	htmlData += '</body></html>'
