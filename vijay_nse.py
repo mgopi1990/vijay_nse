@@ -220,7 +220,8 @@ def mail_get_info_from_file (FileName):
 				dict_mail[key] = t1[1].strip()
 			elif (key == 'to'):
 				val = t1[1].split(',')
-				dict_mail[key] = ','.join([ x.strip() for x in val ])
+				dict_mail[key] = [ x.strip() for x in val ]
+				#print (dict_mail[key]);
 			elif (key == 'password'):
 				dict_mail[key] = t1[1].strip()
 			elif (key == 'server'):
@@ -308,7 +309,7 @@ def mail_text_table(commodity, dateList, arg):
 							+ ' days: ' + arg['days'] 
 							+ ' percent: ' + arg['percent'])
 	message['From'] = dict_mail['from']
-	message['To'] 	= dict_mail['to']
+	message['To'] 	= ', '.join(dict_mail['to'])
 	message.attach(MIMEText(htmlData, "html"))
 	#print (message.as_string())
 
@@ -317,6 +318,7 @@ def mail_text_table(commodity, dateList, arg):
 	with smtplib.SMTP_SSL(dict_mail['server'], dict_mail['port'], context=cxt) as server:
 		server.login(dict_mail['from'], dict_mail['password'])
 		server.sendmail(dict_mail['from'], dict_mail['to'], message.as_string())
+		logging.debug('Mail sent successfully to ' + ','.join(dict_mail['to']))
 
 	return
 
