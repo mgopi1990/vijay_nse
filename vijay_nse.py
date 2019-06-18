@@ -438,7 +438,7 @@ if len(sys.argv) == 2 and sys.argv[1] == 'updatedb':
 		logging.debug('Skipping DB update: Skipping updates on holidays')
 		exit()
 	
-        ## Get commodity from server
+	## Get commodity from server
 	commodity = vijay_mcx()
 
 	## Write to db YYYY.csv
@@ -447,7 +447,7 @@ if len(sys.argv) == 2 and sys.argv[1] == 'updatedb':
 	logging.debug('Data Updated now')
 
 	## Sends mail
-	process_commodity (date, days, percent, console=False, mail=True)
+	process_commodity (now, defaultDays, defaultPercent, console=False, mail=True)
 
 	#vijay_calc_high_low(commodity)
 	#pprint(commodity)
