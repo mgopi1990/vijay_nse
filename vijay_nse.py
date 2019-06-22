@@ -64,9 +64,9 @@ TrackCommodity = ['GOLDM', 'SILVERM', 'COPPERM', 'ALUMINI', 'LEADMINI', 'ZINCMIN
 
 
 # parses commodity data from http://market.mcxdata.in/
+link = 'http://market.mcxdata.in/'
 def vijay_mcx():
 
- link = 'http://market.mcxdata.in/'
  page = urlopen(link)
  
  soup = BeautifulSoup(page, 'html.parser')
@@ -177,7 +177,7 @@ def print_text_table(commodity, dateList, arg):
 	Title = ['Sno', 'Commodity', 'Low', 'High', 'LowLimit', 'UpLimit', 'now', 'Call']
 	sno = 1
 	t2 = PrettyTable(Title)
-	t2.title='Commodity Calc'
+	t2.title='Commodity BUY/SELL Calculation'
 	for c in TrackCommodity:
 		PriceNow = commodity[c]['now']
 		if PriceNow >= commodity[c]['VijayUpLimit']:
@@ -242,65 +242,116 @@ def mail_text_table(commodity, dateList, arg):
 		return 
 
 	#pprint (dict_mail)
-	
-	htmlData = ('<html><body><h1>' 
-				+ ' Date: ' + arg['Date'] 
-				+ ' days: ' + arg['days'] 
-				+ ' percent: ' + arg['percent']
-				+ '</h1>')
+
+	## VijayNSE	
+	htmlData = (
+		'<html><body style="Font:15px Ariel,sans-serif;text-align:center;color:#000000"><div style="width:min-context;">'
+		+ '<div style="width:min-content;background:#000000">'
+		+ '<h1 style="letter-spacing:1px;font-weight:bold;font-size:40px;display:block;margin:0">&nbsp;'
+		+ '<span style="color:#DE2600">VIJAY</span><span style="color:#FFFFFF">NSE</span>&nbsp;</h1>'
+		+ '</div>')
+
+	htmlData += '<div style="width:min-content;">'
+
+	## DateTime when mail is sent
+	htmlData += (
+		'<ul style="list-style-type:none;display:flex;padding:0;margin:3px 0px 0px 0px">'
+		+ '<li style="background:#000000;color:#FFFFFF;font-weight:bold;padding:8px;margin:2px">Mailed&nbsp;Time</li>'
+		+ '<li style="background:#D9D9D9;padding:8px;margin:2px">'
+		+ now.strftime('%d%b%Y') + '</li>'
+		+ '<li style="background:#D9D9D9;padding:8px;margin:2px">'
+		+ now.strftime('%H:%M:%S') + '</li>' + '</ul>')
+
+	## Date, Days, Percentage
+	htmlData += (
+		'<ul style="list-style-type:none;display:flex;padding:0;margin:2px 0px 0px 0px">'
+		+ '<li style="background:#D9D9D9;padding:8px;margin:2px">'
+		+ arg['Date'] + '</li>'
+		+ '<li style="background:#D9D9D9;padding:8px;margin:2px">'
+		+ arg['days'] + '&nbsp;days' + '</li>'
+		+ '<li style="background:#D9D9D9;padding:8px;margin:2px">'
+		+ arg['percent'] + '%' + '</li>' + '</ul>') 
+
+	## Url
+	htmlData += (
+		'<ul style="list-style-type:none;display:flex;padding:0;margin:2px 0px 0px 0px">'
+		+ '<li style="background:#000000;color:#FFFFFF;font-weight:bold;padding:8px;margin:2px">Url</li>'
+		+ '<li style="background:#D9D9D9;padding:8px;margin:2px">'
+		+ '<a style="color:#000000;font-size:15px;text-decoration:none;" href="' + link + '">' + link + '</a>' + '</li>' + '</ul>' )
+
+	## Commodity list
+	htmlCommodity = ''
+	for c in TrackCommodity:
+		htmlCommodity += '<li style="background:#D9D9D9;padding:8px;margin:2px">' + c.title() + '</li>'
+
+	htmlData += (
+		'<ul style="list-style-type:none;display:flex;padding:0;margin:2px 0px 0px 0px">'
+		+ '<li style="background:#DE2600;color:#FFFFFF;font-weight:bold;padding:8px;margin:2px">COMMODITY</li>' + htmlCommodity + '</ul>')
+
 
 	### print Table1
 	tList = ['Sno', 'Date']	+ TrackCommodity
-	htmlData += ('<table><tr><th colspan="' + str(len(tList)) + '">' 
-				+ str(len(dateList)) + ' day Data </th></tr>'
-				+ '<tr><th>' + '</th><th>'.join(tList) + '</th></tr>')
+	htmlData += ('<br><div style="width:min-content;">'
+		+ '<h2 style="background:#DE2600;color:#FFFFFF;font-size:15px;font-weight:bold;padding:8px;margin:2px">' + str(len(dateList)) + ' day Data </h2>'
+		+ '<table style="border:1px solid black;" cellpadding="3px">'
+		+ '<tr style="text-align:center;background:#000000;color:#FFFFFF;vertical-align:middle;text-align: center;"><th>' + '</th><th>'.join(tList) + '</th></tr>')
 
+	### Generates rows for Table1
 	sno = 1
 	for date in dateList:
 		rowData = PrepareRowData(sno, date, commodity)
-		htmlData += ('<tr><td>' + '</td><td>'.join(rowData) + '</td></tr>')
+		htmlData += ('<tr style="background:#D9D9D9;vertical-align:top;text-align:right;">'
+			+ '<td style="text-align:center">' + rowData[0] + '</td>'
+			+ '<td>' + '</td><td>'.join(rowData[1:]) + '</td></tr>')
 		sno += 1
-	htmlData += '</table><br><br>'
+	htmlData += '</table></div>'
+
 
 	### print Table2
 	Title = ['Sno', 'Commodity', 'Low', 'High', 'LowLimit', 'UpLimit', 'now', 'Call']
-	htmlData += '<table><tr><th colspan="' + str(len(Title)) + '">Commodity Calc</th></tr>'
-	htmlData += '<tr><th>' + '</th><th>'.join(Title) + '</th></tr>'
+	htmlData += ('<br><div style="width:min-content;">'
+		+ '<h2 style="background:#DE2600;color:#FFFFFF;font-size:15px;font-weight:bold;padding:8px;margin:2px">' +  ' Commodity BUY/SELL Calculation </h2>'
+		+ '<table style="border:1px solid black;" cellpadding="3px">'
+		+ '<tr style="text-align:center;background:#000000;color:#FFFFFF;vertical-align:middle;text-align: center;"><th>' + '</th><th>'.join(Title) + '</th></tr>')
+
+	### Generate row for Table2
 	sno = 1
 	for c in TrackCommodity:
 		PriceNow = commodity[c]['now']
 		if PriceNow >= commodity[c]['VijayUpLimit']:
-			htmlData += ('<tr class="sell"><td>' + str(sno) + '</td>'
-						+ '<td>' + c + '</td>'
+			htmlData += ('<tr class="sell" style="background:#FFC1C1;vertical-align:top;text-align:right;">'
+						+ '<td style="text-align:center">' + str(sno) + '</td>'
+						+ '<td style="text-align:left">' + c + '</td>'
 						+ '<td>' + '%0.2f'%commodity[c]['Low'] + '</td>'
 						+ '<td>' + '%0.2f'%commodity[c]['High'] + '</td>'  
 						+ '<td>' + '%0.2f'%commodity[c]['VijayLowLimit'] + '</td>' 
 						+ '<td>' + '%0.2f'%commodity[c]['VijayUpLimit'] + '</td>'
 						+ '<td>' + '%0.2f'%PriceNow + '</td>'
-						+ '<td>' + 'SELL' + '</td></tr>')
+						+ '<td style="text-align:center">' + 'SELL' + '</td></tr>')
 		elif PriceNow <= commodity[c]['VijayLowLimit']:
-			htmlData += ('<tr class="buy"><td>' + str(sno) + '</td>'
-						+ '<td>' + c + '</td>'
+			htmlData += ('<tr class="buy" style="background:#BDFF7B;vertical-align:top;text-align:right;">'
+						+ '<td style="text-align:center">' + str(sno) + '</td>'
+						+ '<td style="text-align:left">' + c + '</td>'
 						+ '<td>' + '%0.2f'%commodity[c]['Low'] + '</td>'
 						+ '<td>' + '%0.2f'%commodity[c]['High'] + '</td>'  
 						+ '<td>' + '%0.2f'%commodity[c]['VijayLowLimit'] + '</td>' 
 						+ '<td>' + '%0.2f'%commodity[c]['VijayUpLimit'] + '</td>'
 						+ '<td>' + '%0.2f'%PriceNow + '</td>'
-						+ '<td>' + 'BUY' + '</td></tr>')
+						+ '<td style="text-align:center">' + 'BUY' + '</td></tr>')
 		else:	
-			htmlData += ('<tr class="none"><td>' + str(sno) + '</td>'
-						+ '<td>' + c + '</td>'
+			htmlData += ('<tr class="none" style="background:#D9D9D9;vertical-align:top;text-align:right;">'
+						+ '<td style="text-align:center">' + str(sno) + '</td>'
+						+ '<td style="text-align:left">' + c + '</td>'
 						+ '<td>' + '%0.2f'%commodity[c]['Low'] + '</td>'
 						+ '<td>' + '%0.2f'%commodity[c]['High'] + '</td>'  
 						+ '<td>' + '%0.2f'%commodity[c]['VijayLowLimit'] + '</td>' 
 						+ '<td>' + '%0.2f'%commodity[c]['VijayUpLimit'] + '</td>'
 						+ '<td>' + '%0.2f'%PriceNow + '</td>'
-						+ '<td>' + '' + '</td></tr>')
+						+ '<td style="text-align:center">' + '' + '</td></tr>')
 		sno += 1
+	htmlData += '</table></div></br></br>'
 
-	htmlData += '</table></br></br>'
-
-	htmlData += '</body></html>'
+	htmlData += '</div></body></html>'
 
 	#print (htmlData)	
 
@@ -324,7 +375,7 @@ def mail_text_table(commodity, dateList, arg):
 
 def update_db(date, commodity):
 	dbFile = os.path.join(HomeDir, DbDir, str(now.year)+ '.csv')
-	#print (dbFile)
+	#print(dbFile)
 	dateStr = date.strftime('%d%b%Y')
 	with open(dbFile, 'a', encoding='utf-8', newline='') as csv_file:
 		csv_writer = csv.writer(csv_file, delimiter=',', quoting=csv.QUOTE_MINIMAL)
