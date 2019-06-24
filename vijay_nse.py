@@ -245,13 +245,13 @@ def mail_text_table(commodity, dateList, arg):
 
 	## VijayNSE	
 	htmlData = (
-		'<html><body style="Font:15px Ariel,sans-serif;text-align:center;color:#000000"><div style="width:min-context;">'
+		'<html><body style="Font:15px Ariel,sans-serif;text-align:center;color:#000000"><table cellpadding="0" style="border-collapse:collapse"><tr><td><div style="width:min-context;">'
 		+ '<div style="width:min-content;background:#000000">'
 		+ '<h1 style="letter-spacing:1px;font-weight:bold;font-size:40px;display:block;margin:0">&nbsp;'
 		+ '<span style="color:#DE2600">VIJAY</span><span style="color:#FFFFFF">NSE</span>&nbsp;</h1>'
-		+ '</div>')
+		+ '</div></td></tr>')
 
-	htmlData += '<div style="width:min-content;">'
+	htmlData += '<tr><td><div style="width:min-content;">'
 
 	## DateTime when mail is sent
 	htmlData += (
@@ -260,24 +260,24 @@ def mail_text_table(commodity, dateList, arg):
 		+ '<li style="background:#D9D9D9;padding:8px;margin:2px">'
 		+ now.strftime('%d%b%Y') + '</li>'
 		+ '<li style="background:#D9D9D9;padding:8px;margin:2px">'
-		+ now.strftime('%H:%M:%S') + '</li>' + '</ul>')
+		+ now.strftime('%H:%M:%S') + '</li>' + '</ul></td></tr>')
 
 	## Date, Days, Percentage
 	htmlData += (
-		'<ul style="list-style-type:none;display:flex;padding:0;margin:2px 0px 0px 0px">'
+		'<tr><td><ul style="list-style-type:none;display:flex;padding:0;margin:2px 0px 0px 0px">'
 		+ '<li style="background:#D9D9D9;padding:8px;margin:2px">'
 		+ arg['Date'] + '</li>'
 		+ '<li style="background:#D9D9D9;padding:8px;margin:2px">'
 		+ arg['days'] + '&nbsp;days' + '</li>'
 		+ '<li style="background:#D9D9D9;padding:8px;margin:2px">'
-		+ arg['percent'] + '%' + '</li>' + '</ul>') 
+		+ arg['percent'] + '%' + '</li>' + '</ul></td></tr>') 
 
 	## Url
 	htmlData += (
-		'<ul style="list-style-type:none;display:flex;padding:0;margin:2px 0px 0px 0px">'
+		'<tr><td><ul style="list-style-type:none;display:flex;padding:0;margin:2px 0px 0px 0px">'
 		+ '<li style="background:#000000;color:#FFFFFF;font-weight:bold;padding:8px;margin:2px">Url</li>'
 		+ '<li style="background:#D9D9D9;padding:8px;margin:2px">'
-		+ '<a style="color:#000000;font-size:15px;text-decoration:none;" href="' + link + '">' + link + '</a>' + '</li>' + '</ul>' )
+		+ '<a style="color:#000000;font-size:15px;text-decoration:none;" href="' + link + '">' + link + '</a>' + '</li>' + '</ul></td></tr>' )
 
 	## Commodity list
 	htmlCommodity = ''
@@ -285,8 +285,8 @@ def mail_text_table(commodity, dateList, arg):
 		htmlCommodity += '<li style="background:#D9D9D9;padding:8px;margin:2px">' + c.title() + '</li>'
 
 	htmlData += (
-		'<ul style="list-style-type:none;display:flex;padding:0;margin:2px 0px 0px 0px">'
-		+ '<li style="background:#DE2600;color:#FFFFFF;font-weight:bold;padding:8px;margin:2px">COMMODITY</li>' + htmlCommodity + '</ul>')
+		'<tr><td><ul style="list-style-type:none;display:flex;padding:0;margin:2px 0px 0px 0px">'
+		+ '<li style="background:#DE2600;color:#FFFFFF;font-weight:bold;padding:8px;margin:2px">COMMODITY</li>' + htmlCommodity + '</ul></td></tr>')
 
 
 	### print Table1
