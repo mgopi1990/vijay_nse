@@ -120,11 +120,15 @@ def vijay_calc_high_low(commodity, percent):
 		dateList = list(commodity[k].keys())
 		commodity[k]['High'] = commodity[k][dateList[0]]
 		commodity[k]['Low']  = commodity[k][dateList[0]]
+		commodity[k]['HighDate'] = dateList[0]
+		commodity[k]['LowDate']  = dateList[0]
 		for date in dateList[1:]:
 			if commodity[k][date] > commodity[k]['High']:
 				commodity[k]['High'] = commodity[k][date]
+				commodity[k]['HighDate'] = date
 			elif commodity[k][date] < commodity[k]['Low']:
 				commodity[k]['Low'] = commodity[k][date]
+				commodity[k]['LowDate'] = date
 
 		high = float(commodity[k]['High'])
 		low  = float(commodity[k]['Low']) 
@@ -311,44 +315,12 @@ def mail_text_table(commodity, dateList, arg):
 	Title = ['Sno', 'Commodity', 'Low', 'High', 'LowLimit', 'UpLimit', 'now', 'Call']
 	htmlData += ('<br><div style="width:min-content;">'
 		+ '<h2 style="background:#DE2600;color:#FFFFFF;font-size:15px;font-weight:bold;padding:8px;margin:2px">' +  ' Commodity BUY/SELL Calculation </h2>'
-		+ '<table style="border:1px solid black;" cellpadding="3px">'
+		+ '<table style="border:1px solid black;" cellpadding="5px">'
 		+ '<tr style="text-align:center;background:#000000;color:#FFFFFF;vertical-align:middle;text-align: center;"><th>' + '</th><th>'.join(Title) + '</th></tr>')
 
 	### Generate row for Table2
-	sno = 1
-	for c in TrackCommodity:
-		PriceNow = commodity[c]['now']
-		if PriceNow >= commodity[c]['VijayUpLimit']:
-			htmlData += ('<tr class="sell" style="background:#FFC1C1;vertical-align:top;text-align:right;">'
-						+ '<td style="text-align:center">' + str(sno) + '</td>'
-						+ '<td style="text-align:left">' + c + '</td>'
-						+ '<td>' + '%0.2f'%commodity[c]['Low'] + '</td>'
-						+ '<td>' + '%0.2f'%commodity[c]['High'] + '</td>'  
-						+ '<td>' + '%0.2f'%commodity[c]['VijayLowLimit'] + '</td>' 
-						+ '<td>' + '%0.2f'%commodity[c]['VijayUpLimit'] + '</td>'
-						+ '<td>' + '%0.2f'%PriceNow + '</td>'
-						+ '<td style="text-align:center">' + 'SELL' + '</td></tr>')
-		elif PriceNow <= commodity[c]['VijayLowLimit']:
-			htmlData += ('<tr class="buy" style="background:#BDFF7B;vertical-align:top;text-align:right;">'
-						+ '<td style="text-align:center">' + str(sno) + '</td>'
-						+ '<td style="text-align:left">' + c + '</td>'
-						+ '<td>' + '%0.2f'%commodity[c]['Low'] + '</td>'
-						+ '<td>' + '%0.2f'%commodity[c]['High'] + '</td>'  
-						+ '<td>' + '%0.2f'%commodity[c]['VijayLowLimit'] + '</td>' 
-						+ '<td>' + '%0.2f'%commodity[c]['VijayUpLimit'] + '</td>'
-						+ '<td>' + '%0.2f'%PriceNow + '</td>'
-						+ '<td style="text-align:center">' + 'BUY' + '</td></tr>')
-		else:	
-			htmlData += ('<tr class="none" style="background:#D9D9D9;vertical-align:top;text-align:right;">'
-						+ '<td style="text-align:center">' + str(sno) + '</td>'
-						+ '<td style="text-align:left">' + c + '</td>'
-						+ '<td>' + '%0.2f'%commodity[c]['Low'] + '</td>'
-						+ '<td>' + '%0.2f'%commodity[c]['High'] + '</td>'  
-						+ '<td>' + '%0.2f'%commodity[c]['VijayLowLimit'] + '</td>' 
-						+ '<td>' + '%0.2f'%commodity[c]['VijayUpLimit'] + '</td>'
-						+ '<td>' + '%0.2f'%PriceNow + '</td>'
-						+ '<td style="text-align:center">' + '' + '</td></tr>')
-		sno += 1
+	htmlData += DrawTable2Rows(commodity)
+
 	htmlData += '</table></div></br></br>'
 
 	htmlData += '</div></body></html>'
