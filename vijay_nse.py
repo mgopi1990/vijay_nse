@@ -160,6 +160,104 @@ def PrepareRowData(sno, date, commodity):
 
 	#print (rowData)
 	return rowData
+
+def DrawTable1Rows(dateList, commodity):
+	htmlData = ''
+	sno = 1
+	day = datetime.datetime.strptime(dateList[0],'%d%b%Y').weekday()
+	for date in dateList:
+		rowData = PrepareRowData(sno, date, commodity)
+
+		## saturday = 5, sunday = 6
+		## all rows will be NA NA.
+		if (day == 5 or day == 6):
+			htmlData += ('<tr style="background:#777777;color:#FFFFFF;vertical-align:top;text-align:center">'
+			+ '<td>' + '</td><td>'.join(rowData) + '</td></tr>')
+		else:
+			## count the non-empty rows
+			## commodity starts from rowData[2:]
+			c = 0
+			for item in rowData[2:]:
+				if item != 'NA':
+					c += 1
+
+			## for all rows empty
+			if c == 0:
+				htmlData += ('<tr style="background:#DE2600;color:#FFFFFF;font-weight:bold;vertical-align:top;text-align:center;">'
+				+ '<td style="text-align:center">' + rowData[0] + '</td>'
+				+ '<td>' + '</td><td>'.join(rowData[1:]) + '</td></tr>')
+			else:	
+				tempStr = ''
+				for data in rowData[1:]:
+					if data == 'NA':
+						tempStr += '<td style="background:#DE2600;color:#FFFFFF;text-align:center;font-weight:bold">NA</td>'
+					else:
+						tempStr += '<td>{}</td>'.format(data)
+
+				htmlData += ('<tr style="background:#D9D9D9;vertical-align:top;text-align:right;">'
+					+ '<td style="text-align:center">' + rowData[0] + '</td>'
+					+ tempStr + '</tr>')
+
+		## we can also use the below formula
+		## ((7 + BeginDay - (BeginDaySNo % 7)) % 7)
+		## where BeginDay -> day,.. say wednesday.
+		## BeginDaySNo -> sno corresponding to that day. say 1.
+		## Sno: 1 2 3 4 5 6 7 8 9 10 11
+		## Day: W T M S S F T W T  M  S
+		## Week:2 1 0 6 5 4 3 2 1  0  6
+		## Basically we want it to loop through
+		## The below if check does it, than the complex mod operations
+		day -= 1
+		if (day == -1):
+			day = 6
+	
+		sno += 1
+
+	return htmlData
+
+
+def DrawTable2Rows(commodity):
+	FormatTable = {
+		'None': {
+			'name':		 '',
+			'classname': 'none',
+			'bgcolor':	 '#D9D9D9'
+		},
+		'Buy': {
+			'name':		 'BUY',
+			'classname': 'buy',
+			'bgcolor':	 '#BDFF7B'
+		},
+		'Sell': {
+			'name':		 'SELL',
+			'classname': 'sell',
+			'bgcolor':	 '#FFC1C1'
+		}
+	}
+
+	htmlData = ''
+	sno = 1
+	for c in TrackCommodity:
+		PriceNow = commodity[c]['now']
+		if PriceNow >= commodity[c]['VijayUpLimit']:
+			formatT = FormatTable['Sell']
+		elif PriceNow <= commodity[c]['VijayLowLimit']:
+			formatT = FormatTable['Buy']
+		else:
+			formatT = FormatTable['None']
+
+		htmlData += ('<tr class="{}" style="background:{};vertical-align:top;text-align:right;">'.format(formatT['classname'],formatT['bgcolor'])
+				+ '<td style="text-align:center">' + str(sno) + '</td>'
+				+ '<td style="text-align:left">' + c + '</td>'
+				+ '<td title="{0}">{1:0.2f}</td>'.format(commodity[c]['LowDate'],commodity[c]['Low'])
+				+ '<td title="{0}">{1:0.2f}</td>'.format(commodity[c]['HighDate'],commodity[c]['High'])
+				+ '<td>{0:0.2f}</td>'.format(commodity[c]['VijayLowLimit'])
+				+ '<td>{0:0.2f}</td>'.format(commodity[c]['VijayUpLimit'])
+				+ '<td>{0:0.2f}</td>'.format(PriceNow)
+				+ '<td style="text-align:center">{}</td></tr>'.format(formatT['name']))
+		sno += 1
+
+	return htmlData
 	
 def print_text_table(commodity, dateList, arg):
 
@@ -301,13 +399,8 @@ def mail_text_table(commodity, dateList, arg):
 		+ '<tr style="text-align:center;background:#000000;color:#FFFFFF;vertical-align:middle;text-align: center;"><th>' + '</th><th>'.join(tList) + '</th></tr>')
 
 	### Generates rows for Table1
-	sno = 1
-	for date in dateList:
-		rowData = PrepareRowData(sno, date, commodity)
-		htmlData += ('<tr style="background:#D9D9D9;vertical-align:top;text-align:right;">'
-			+ '<td style="text-align:center">' + rowData[0] + '</td>'
-			+ '<td>' + '</td><td>'.join(rowData[1:]) + '</td></tr>')
-		sno += 1
+	htmlData += DrawTable1Rows(dateList, commodity)
+
 	htmlData += '</table></div>'
 
 
