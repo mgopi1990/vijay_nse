@@ -345,12 +345,12 @@ def mail_text_table(commodity, dateList, arg):
 
 	#pprint (dict_mail)
 
-	## VijayNSE	
+	## VijayMCX
 	htmlData = (
 		'<html><body style="Font:15px Ariel,sans-serif;text-align:center;color:#000000"><table cellpadding="0" style="border-collapse:collapse"><tr><td><div style="width:min-context;">'
 		+ '<div style="width:min-content;background:#000000">'
 		+ '<h1 style="letter-spacing:1px;font-weight:bold;font-size:40px;display:block;margin:0">&nbsp;'
-		+ '<span style="color:#DE2600">VIJAY</span><span style="color:#FFFFFF">NSE</span>&nbsp;</h1>'
+		+ '<span style="color:#DE2600">VIJAY</span><span style="color:#FFFFFF">MCX</span>&nbsp;</h1>'
 		+ '</div></td></tr>')
 
 	htmlData += '<tr><td><div style="width:min-content;">'
@@ -421,7 +421,7 @@ def mail_text_table(commodity, dateList, arg):
 	#print (htmlData)	
 
 	message = MIMEMultipart('alternative')
-	message['Subject'] = (' VijayNSE Date: ' + arg['Date'] 
+	message['Subject'] = (' VijayMCX Date: ' + arg['Date'] 
 							+ ' days: ' + arg['days'] 
 							+ ' percent: ' + arg['percent'])
 	message['From'] = dict_mail['from']
