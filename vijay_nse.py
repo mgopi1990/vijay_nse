@@ -41,7 +41,7 @@ defaultPercent = 25
 defaultDays = 90
 
 # Will track only the commodity in the list
-TrackCommodity = ['GOLDM', 'SILVERM', 'COPPERM', 'ALUMINI', 'LEADMINI', 'ZINCMINI', 'NICKELM', 'CRUDEOILM'] 
+TrackCommodity = ['GOLDM', 'SILVERM', 'COPPER', 'ALUMINI', 'LEADMINI', 'ZINCMINI', 'NICKEL', 'CRUDEOILM'] 
 
 #def vijay_nse():
 # nse = Nse()
@@ -116,8 +116,13 @@ def vijay_calc_high_low(commodity, percent):
 	for k in commodity.keys():
 		#print (k)
 
-		## Find High Low
+		## Since we are preparing the dateList from 
+		## commodity's datelist, naturally the days
+		## data was missing (NA) entries will be
+		## automatically ignored. Good thing.
 		dateList = list(commodity[k].keys())
+
+		## Find High Low
 		commodity[k]['High'] = commodity[k][dateList[0]]
 		commodity[k]['Low']  = commodity[k][dateList[0]]
 		commodity[k]['HighDate'] = dateList[0]
