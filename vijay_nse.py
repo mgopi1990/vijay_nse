@@ -377,7 +377,10 @@ def mail_text_table(commodity, dateList, arg):
 		+ '<li style="background:#D9D9D9;padding:8px;margin:2px">'
 		+ arg['days'] + '&nbsp;days' + '</li>'
 		+ '<li style="background:#D9D9D9;padding:8px;margin:2px">'
-		+ arg['percent'] + '%' + '</li>' + '</ul></td></tr>') 
+		+ arg['percent'] + '%' + '</li>' 
+		+ '<li style="background:#DE2600;color:#FFFFFF;font-weight:bold;padding:8px;margin:2px">'
+		+ arg['by'] + '</li>' 
+		+ '</ul></td></tr>') 
 
 	## Url
 	htmlData += (
@@ -489,6 +492,13 @@ def process_commodity (date, days, percent, console=True, mail=False):
 	arg['Date'] = date.strftime('%d%b%Y')
 	arg['days'] = str(days)
 	arg['percent'] = str(percent)
+
+	## It happens when mail is triggered from crontab
+	## console is True when user runs it.
+	if (console == False and mail == True):
+		arg['by'] = 'cron'
+	else:
+		arg['by'] = 'manual'
 
 	commodity,dateList = LoadCommodity(date, days)
 	vijay_calc_high_low(commodity, percent)
