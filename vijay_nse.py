@@ -450,6 +450,7 @@ def mail_text_table(commodity, dateList, arg):
 	dict_mail = mail_get_info_from_file (os.path.join(HomeDir, MailFile))
 	if (dict_mail == None):
 		return 
+	dict_mail['to'] += arg['mailids']
 
 	#pprint (dict_mail)
 	htmlData = DrawHTMLData(commodity, dateList, arg)
@@ -513,11 +514,12 @@ def LoadCommodity(date, days):
 	#pprint (commodity)
 	return commodity, DateList
 
-def process_commodity (date, days, percent, console=True, mail=False):
+def process_commodity (date, days, percent, mailList=[], console=True, mail=False):
 	arg = {}
 	arg['Date'] = date.strftime('%d%b%Y')
 	arg['days'] = str(days)
 	arg['percent'] = str(percent)
+	arg['mailids'] = mailList
 
 	## It happens when mail is triggered from crontab
 	## console is True when user runs it.
@@ -559,6 +561,8 @@ def printHelpAndExit():
 			   + ' Uses today if no arg is specified')
 	print('\r' + argv[0] + ' days=90\tSet days')
 	print('\r' + argv[0] + ' percent=25\tSet percent')
+	print('\r' + argv[0] + ' mail=id1,id2..\tSends mail.'
+						 + ' Additional mailIds can be specified to add in mailing list')
 	exit()
 
 ## program starts ##
@@ -614,6 +618,7 @@ else:
 	days = defaultDays 	
 	date = now
 	mail = False
+	mailList = []
 
 	if len(sys.argv) > 1:
 		for argv in sys.argv[1:]:
@@ -623,12 +628,15 @@ else:
 				mail = True
 				continue
 
-			z=re.match(r'(days|percent)=([0-9]+)', argv)
+			z=re.match(r'(days|percent|mail)=([0-9]+|.*@.*\..*)', argv)
 			if (z != None):
 				if (z.group(1) == 'days'):
 					days = int(z.group(2))
 				elif (z.group(1) == 'percent'):
 					percent = int(z.group(2))
+				elif (z.group(1) == 'mail'):
+					mail = True
+					mailList = z.group(2).split(',')
 				else:
 					print ('Invalid argument')
 					printHelpAndExit()
@@ -639,4 +647,4 @@ else:
 					print ('Invalid date argument')
 					printHelpAndExit()
 
-	process_commodity (date, days, percent, mail=mail)
+	process_commodity (date, days, percent, mailList, mail=mail)
