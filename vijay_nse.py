@@ -40,9 +40,13 @@ defaultPercent = 25
 ## default Days to consider data
 defaultDays = 90
 
-# Will track only the commodity in the list
+## Will track only the commodity in the list
 TrackCommodity = ['GOLDM', 'SILVERM', 'COPPER', 'ALUMINI', 'LEADMINI', 'ZINCMINI', 'NICKEL', 'CRUDEOILM'] 
 
+## Title for Table1 and Table2
+Table1Title = ['Sno', 'Date'] + TrackCommodity
+Table2Title = ['Sno', 'Commodity', 'Low', 'High', 'LowLimit', 'UpLimit', 
+				'now', 'Low%', 'High%', 'Call']
 #def vijay_nse():
 # nse = Nse()
 # print (nse)
@@ -113,7 +117,7 @@ def vijay_mcx():
  
 def vijay_calc_high_low(commodity, percent):
 
-	for k in commodity.keys():
+	for k in TrackCommodity:
 		#print (k)
 
 		## Since we are preparing the dateList from 
@@ -141,6 +145,12 @@ def vijay_calc_high_low(commodity, percent):
 		
 		commodity[k]['VijayUpLimit'] = high - ans
 		commodity[k]['VijayLowLimit'] = low + ans
+
+		diff = commodity[k]['VijayUpLimit'] - commodity[k]['now']
+		commodity[k]['VijayUpPercent'] = (diff/commodity[k]['now']) * 100
+
+		diff =  commodity[k]['now'] - commodity[k]['VijayLowLimit']
+		commodity[k]['VijayLowPercent'] = (diff/commodity[k]['now']) * 100
 	
 def UpdateCommodity(commodity, commodity_now):
 	for c in TrackCommodity:
@@ -259,6 +269,8 @@ def DrawTable2Rows(commodity):
 				+ '<td>{0:0.2f}</td>'.format(commodity[c]['VijayLowLimit'])
 				+ '<td>{0:0.2f}</td>'.format(commodity[c]['VijayUpLimit'])
 				+ '<td>{0:0.2f}</td>'.format(PriceNow)
+				+ '<td>{0:0.2f}%</td>'.format(commodity[c]['VijayLowPercent'])
+				+ '<td>{0:0.2f}%</td>'.format(commodity[c]['VijayUpPercent'])
 				+ '<td style="text-align:center">{}</td></tr>'.format(formatT['name']))
 		sno += 1
 
@@ -271,7 +283,7 @@ def print_text_table(commodity, dateList, arg):
 			+ ' percent: ' + arg['percent'])
 
 	## print Table1
-	t1 = PrettyTable(['Sno', 'Date'] + TrackCommodity)
+	t1 = PrettyTable(Table1Title)
 	t1.title=(str(len(dateList))+" day Data")
 	sno = 1
 	for date in dateList:
@@ -281,9 +293,8 @@ def print_text_table(commodity, dateList, arg):
 	print(t1.get_string() + '\n\n')
 
 	## print Table2
-	Title = ['Sno', 'Commodity', 'Low', 'High', 'LowLimit', 'UpLimit', 'now', 'Call']
 	sno = 1
-	t2 = PrettyTable(Title)
+	t2 = PrettyTable(Table2Title)
 	t2.title='Commodity BUY/SELL Calculation'
 	for c in TrackCommodity:
 		PriceNow = commodity[c]['now']
@@ -295,6 +306,8 @@ def print_text_table(commodity, dateList, arg):
 							colored(('%0.2f'%commodity[c]['VijayLowLimit']), 'red'),  
 							colored(('%0.2f'%commodity[c]['VijayUpLimit']), 'red'),
 							colored(('%0.2f'%PriceNow), 'red'),
+							colored(('%0.2f'%commodity[c]['VijayLowPercent'] + '%'), 'red'),
+							colored(('%0.2f'%commodity[c]['VijayUpPercent'] + '%'), 'red'),
 							colored('SELL', 'red')])
 		elif PriceNow <= commodity[c]['VijayLowLimit']:
 			t2.add_row([colored(str(sno), 'green'), 
@@ -304,11 +317,19 @@ def print_text_table(commodity, dateList, arg):
 							colored(('%0.2f'%commodity[c]['VijayLowLimit']), 'green'),  
 							colored(('%0.2f'%commodity[c]['VijayUpLimit']), 'green'),
 							colored(('%0.2f'%PriceNow), 'green'),
+							colored(('%0.2f'%commodity[c]['VijayLowPercent'] + '%'), 'green'),
+							colored(('%0.2f'%commodity[c]['VijayUpPercent'] + '%'), 'green'),
 							colored('BUY', 'green')])
 		else:	
-			t2.add_row([str(sno), c, ('%0.2f'%commodity[c]['Low']), ('%0.2f'%commodity[c]['High']), 
-						('%0.2f'%commodity[c]['VijayLowLimit']), ('%0.2f'%commodity[c]['VijayUpLimit']),
-						('%0.2f'%PriceNow), ''])
+			t2.add_row([str(sno), c, 
+						('%0.2f'%commodity[c]['Low']), 
+						('%0.2f'%commodity[c]['High']), 
+						('%0.2f'%commodity[c]['VijayLowLimit']), 
+						('%0.2f'%commodity[c]['VijayUpLimit']),
+						('%0.2f'%PriceNow), 
+						('%0.2f'%commodity[c]['VijayLowPercent'] + '%'),
+						('%0.2f'%commodity[c]['VijayUpPercent'] + '%'),
+						''])
 		sno += 1
 	print(t2.get_string() + '\n\n')
 
@@ -400,11 +421,10 @@ def mail_text_table(commodity, dateList, arg):
 
 
 	### print Table1
-	tList = ['Sno', 'Date']	+ TrackCommodity
 	htmlData += ('<br><div style="width:min-content;">'
 		+ '<h2 style="background:#DE2600;color:#FFFFFF;font-size:15px;font-weight:bold;padding:8px;margin:2px">' + str(len(dateList)) + ' day Data </h2>'
 		+ '<table style="border:1px solid black;" cellpadding="3px">'
-		+ '<tr style="text-align:center;background:#000000;color:#FFFFFF;vertical-align:middle;text-align: center;"><th>' + '</th><th>'.join(tList) + '</th></tr>')
+		+ '<tr style="text-align:center;background:#000000;color:#FFFFFF;vertical-align:middle;text-align: center;"><th>' + '</th><th>'.join(Table1Title) + '</th></tr>')
 
 	### Generates rows for Table1
 	htmlData += DrawTable1Rows(dateList, commodity)
@@ -413,11 +433,10 @@ def mail_text_table(commodity, dateList, arg):
 
 
 	### print Table2
-	Title = ['Sno', 'Commodity', 'Low', 'High', 'LowLimit', 'UpLimit', 'now', 'Call']
 	htmlData += ('<br><div style="width:min-content;">'
 		+ '<h2 style="background:#DE2600;color:#FFFFFF;font-size:15px;font-weight:bold;padding:8px;margin:2px">' +  ' Commodity BUY/SELL Calculation </h2>'
 		+ '<table style="border:1px solid black;" cellpadding="5px">'
-		+ '<tr style="text-align:center;background:#000000;color:#FFFFFF;vertical-align:middle;text-align: center;"><th>' + '</th><th>'.join(Title) + '</th></tr>')
+		+ '<tr style="text-align:center;background:#000000;color:#FFFFFF;vertical-align:middle;text-align: center;"><th>' + '</th><th>'.join(Table2Title) + '</th></tr>')
 
 	### Generate row for Table2
 	htmlData += DrawTable2Rows(commodity)
@@ -501,10 +520,6 @@ def process_commodity (date, days, percent, console=True, mail=False):
 		arg['by'] = 'manual'
 
 	commodity,dateList = LoadCommodity(date, days)
-	vijay_calc_high_low(commodity, percent)
-
-	#pprint(dateList)
-	#pprint(commodity)
 
 	## Get commodity from server
 	commodity_now = vijay_mcx()
@@ -512,6 +527,12 @@ def process_commodity (date, days, percent, console=True, mail=False):
 
 	## Updates the commodity_now to the commodity
 	UpdateCommodity(commodity, commodity_now)
+
+	## Lets high low
+	vijay_calc_high_low(commodity, percent)
+
+	#pprint(dateList)
+	#pprint(commodity)
 
 	if console:
 		print_text_table(commodity, dateList, arg)
@@ -580,7 +601,6 @@ if len(sys.argv) == 2 and sys.argv[1] == 'updatedb':
 	## Sends mail
 	process_commodity (now, defaultDays, defaultPercent, console=False, mail=True)
 
-	#vijay_calc_high_low(commodity)
 	#pprint(commodity)
 else:
 	percent = defaultPercent
