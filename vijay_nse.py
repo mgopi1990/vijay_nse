@@ -306,6 +306,8 @@ def DrawHTMLData(commodity, dateList, arg):
 		+ arg['days'] + '&nbsp;days' + '</li>'
 		+ '<li style="background:#D9D9D9;padding:8px;margin:2px">'
 		+ arg['percent'] + '%' + '</li>' 
+		+ '<li style="background:#D9D9D9;padding:8px;margin:2px">'
+		+ datetime.datetime.strptime(arg['Date'],'%d%b%Y').strftime('%A') + '</li>' 
 		+ '<li style="background:#DE2600;color:#FFFFFF;font-weight:bold;padding:8px;margin:2px">'
 		+ arg['by'] + '</li>' 
 		+ '</ul></td></tr>') 
