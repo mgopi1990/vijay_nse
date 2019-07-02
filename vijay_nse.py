@@ -47,7 +47,7 @@ TrackCommodity = ('GOLDM', 'SILVERM', 'ALUMINI', 'COPPER',
 ## Title for Table1 and Table2
 Table1Title = ('Sno', 'Date') + TrackCommodity
 Table2Title = ('Sno', 'Commodity', 'Low', 'High', 'LowLimit', 'UpLimit', 
-				'now', 'Low%', 'High%', 'Call')
+				'now', 'Percent%', 'Call')
 #def vijay_nse():
 # nse = Nse()
 # print (nse)
@@ -147,11 +147,18 @@ def vijay_calc_high_low(commodity, percent):
 		commodity[k]['VijayUpLimit'] = high - ans
 		commodity[k]['VijayLowLimit'] = low + ans
 
-		diff = commodity[k]['VijayUpLimit'] - commodity[k]['now']
-		commodity[k]['VijayUpPercent'] = (diff/commodity[k]['now']) * 100
+		deno = high - low
+		if deno == 0:
+			## Just a minor adjustment
+			## To avoid divide by zero exception
+			deno += 0.000001
 
-		diff =  commodity[k]['now'] - commodity[k]['VijayLowLimit']
-		commodity[k]['VijayLowPercent'] = (diff/commodity[k]['now']) * 100
+		## Use Vijay's secret formula
+		## R1 -> High
+		## R2 -> Low
+		## R3 -> now
+		## Percent = ((R3-R2)/(R1-R2))*100
+		commodity[k]['VijayPercent'] = (commodity[k]['now'] - low)/deno * 100
 	
 def UpdateCommodity(commodity, commodity_now):
 	for c in TrackCommodity:
@@ -289,8 +296,7 @@ def DrawTable2Rows(commodity):
 				+ '<td>{0:0.2f}</td>'.format(commodity[c]['VijayLowLimit'])
 				+ '<td>{0:0.2f}</td>'.format(commodity[c]['VijayUpLimit'])
 				+ '<td>{0:0.2f}</td>'.format(PriceNow)
-				+ '<td>{0:0.2f}%</td>'.format(commodity[c]['VijayLowPercent'])
-				+ '<td>{0:0.2f}%</td>'.format(commodity[c]['VijayUpPercent'])
+				+ '<td>{0:0.2f}%</td>'.format(commodity[c]['VijayPercent'])
 				+ '<td style="text-align:center">{}</td></tr>'.format(formatT['name']))
 		sno += 1
 
@@ -409,8 +415,7 @@ def print_text_table(commodity, dateList, arg):
 							colored(('%0.2f'%commodity[c]['VijayLowLimit']), 'red'),  
 							colored(('%0.2f'%commodity[c]['VijayUpLimit']), 'red'),
 							colored(('%0.2f'%PriceNow), 'red'),
-							colored(('%0.2f'%commodity[c]['VijayLowPercent'] + '%'), 'red'),
-							colored(('%0.2f'%commodity[c]['VijayUpPercent'] + '%'), 'red'),
+							colored(('%0.2f'%commodity[c]['VijayPercent'] + '%'), 'red'),
 							colored('SELL', 'red')])
 		elif PriceNow <= commodity[c]['VijayLowLimit']:
 			t2.add_row([colored(str(sno), 'green'), 
@@ -420,8 +425,7 @@ def print_text_table(commodity, dateList, arg):
 							colored(('%0.2f'%commodity[c]['VijayLowLimit']), 'green'),  
 							colored(('%0.2f'%commodity[c]['VijayUpLimit']), 'green'),
 							colored(('%0.2f'%PriceNow), 'green'),
-							colored(('%0.2f'%commodity[c]['VijayLowPercent'] + '%'), 'green'),
-							colored(('%0.2f'%commodity[c]['VijayUpPercent'] + '%'), 'green'),
+							colored(('%0.2f'%commodity[c]['VijayPercent'] + '%'), 'green'),
 							colored('BUY', 'green')])
 		else:	
 			t2.add_row([str(sno), c, 
@@ -430,8 +434,7 @@ def print_text_table(commodity, dateList, arg):
 						('%0.2f'%commodity[c]['VijayLowLimit']), 
 						('%0.2f'%commodity[c]['VijayUpLimit']),
 						('%0.2f'%PriceNow), 
-						('%0.2f'%commodity[c]['VijayLowPercent'] + '%'),
-						('%0.2f'%commodity[c]['VijayUpPercent'] + '%'),
+						('%0.2f'%commodity[c]['VijayPercent'] + '%'),
 						''])
 		sno += 1
 	print(t2.get_string() + '\n\n')
