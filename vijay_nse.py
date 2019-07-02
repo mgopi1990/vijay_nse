@@ -204,14 +204,33 @@ def DrawTable1Rows(dateList, commodity):
 				+ '<td>' + '</td><td>'.join(rowData[1:]) + '</td></tr>')
 			else:	
 				tempStr = ''
-				for data in rowData[1:]:
+
+				## sometimes classic C stuff is much better than 
+				## python range() :-P 
+				i = 0
+				while (i < len(TrackCommodity)):
+					## skip two rows Sno, Date
+					data = rowData[2 + i]
+
+					#print ('{} || {}'.format(rowData, data))
+					#print ('{} ({},{}) Data:{} {}'.format(TrackCommodity[i], 
+					#				commodity[TrackCommodity[i]]['Low'],
+					#				commodity[TrackCommodity[i]]['High'],
+					#				i, data))
 					if data == 'NA':
 						tempStr += '<td style="background:#DE2600;color:#FFFFFF;text-align:center;font-weight:bold">NA</td>'
+					elif float(data) == commodity[TrackCommodity[i]]['High']:
+						tempStr += '<td style="background:#BDFF7B;">{}</td>'.format(data)
+					elif float(data) == commodity[TrackCommodity[i]]['Low']:
+						tempStr += '<td style="background:#FFC1C1;">{}</td>'.format(data)
 					else:
 						tempStr += '<td>{}</td>'.format(data)
 
+					i += 1
+
 				htmlData += ('<tr style="background:#D9D9D9;vertical-align:top;text-align:right;">'
 					+ '<td style="text-align:center">' + rowData[0] + '</td>'
+					+ '<td style="text-align:center">' + rowData[1] + '</td>'
 					+ tempStr + '</tr>')
 
 		## we can also use the below formula
