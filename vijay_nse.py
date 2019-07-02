@@ -29,10 +29,10 @@ MailFile = 'mail.cfg'
 ## Add cron like, 
 ## Just run vijay's script 1AM,2AM,3AM,4AM,5AM,6AM,7AM,8AM
 ## 0	1-8	*	*	*	/home/pi/vijay_nse/vijay_nse.py updatedb
-ClosedHours = [ 1, 9 ]
+ClosedHours = ( 1, 9 )
 
 ## Dont Update days
-SkipDays = [ 'Sat', 'Sun' ]
+SkipDays = ( 'Sat', 'Sun' )
 
 ## default percent
 defaultPercent = 25
@@ -41,13 +41,13 @@ defaultPercent = 25
 defaultDays = 90
 
 ## Will track only the commodity in the list
-TrackCommodity = ['GOLDM', 'SILVERM', 'ALUMINI', 'COPPER',
-				'LEADMINI', 'NICKEL', 'ZINCMINI', 'CRUDEOILM'] 
+TrackCommodity = ('GOLDM', 'SILVERM', 'ALUMINI', 'COPPER',
+				'LEADMINI', 'NICKEL', 'ZINCMINI', 'CRUDEOILM')
 
 ## Title for Table1 and Table2
-Table1Title = ['Sno', 'Date'] + TrackCommodity
-Table2Title = ['Sno', 'Commodity', 'Low', 'High', 'LowLimit', 'UpLimit', 
-				'now', 'Low%', 'High%', 'Call']
+Table1Title = ('Sno', 'Date') + TrackCommodity
+Table2Title = ('Sno', 'Commodity', 'Low', 'High', 'LowLimit', 'UpLimit', 
+				'now', 'Low%', 'High%', 'Call')
 #def vijay_nse():
 # nse = Nse()
 # print (nse)
@@ -220,9 +220,9 @@ def DrawTable1Rows(dateList, commodity):
 					if data == 'NA':
 						tempStr += '<td style="background:#DE2600;color:#FFFFFF;text-align:center;font-weight:bold">NA</td>'
 					elif float(data) == commodity[TrackCommodity[i]]['High']:
-						tempStr += '<td style="background:#BDFF7B;">{}</td>'.format(data)
+						tempStr += '<td style="background:#BDFF7B;font-weight:bold;">{}</td>'.format(data)
 					elif float(data) == commodity[TrackCommodity[i]]['Low']:
-						tempStr += '<td style="background:#FFC1C1;">{}</td>'.format(data)
+						tempStr += '<td style="background:#FFC1C1;font-weight:bold;">{}</td>'.format(data)
 					else:
 						tempStr += '<td>{}</td>'.format(data)
 
@@ -321,13 +321,13 @@ def DrawHTMLData(commodity, dateList, arg):
 	htmlData += (
 		'<tr><td><ul style="list-style-type:none;display:flex;padding:0;margin:2px 0px 0px 0px">'
 		+ '<li style="background:#D9D9D9;padding:8px;margin:2px">'
+		+ datetime.datetime.strptime(arg['Date'],'%d%b%Y').strftime('%A') + '</li>' 
+		+ '<li style="background:#D9D9D9;padding:8px;margin:2px">'
 		+ arg['Date'] + '</li>'
 		+ '<li style="background:#D9D9D9;padding:8px;margin:2px">'
 		+ arg['days'] + '&nbsp;days' + '</li>'
 		+ '<li style="background:#D9D9D9;padding:8px;margin:2px">'
 		+ arg['percent'] + '%' + '</li>' 
-		+ '<li style="background:#D9D9D9;padding:8px;margin:2px">'
-		+ datetime.datetime.strptime(arg['Date'],'%d%b%Y').strftime('%A') + '</li>' 
 		+ '<li style="background:#DE2600;color:#FFFFFF;font-weight:bold;padding:8px;margin:2px">'
 		+ arg['by'] + '</li>' 
 		+ '</ul></td></tr>') 
