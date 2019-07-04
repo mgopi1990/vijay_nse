@@ -227,9 +227,9 @@ def DrawTable1Rows(dateList, commodity):
 					if data == 'NA':
 						tempStr += '<td style="background:#DE2600;color:#FFFFFF;text-align:center;font-weight:bold">NA</td>'
 					elif float(data) == commodity[TrackCommodity[i]]['High']:
-						tempStr += '<td style="background:#BDFF7B;font-weight:bold;">{}</td>'.format(data)
-					elif float(data) == commodity[TrackCommodity[i]]['Low']:
 						tempStr += '<td style="background:#FFC1C1;font-weight:bold;">{}</td>'.format(data)
+					elif float(data) == commodity[TrackCommodity[i]]['Low']:
+						tempStr += '<td style="background:#BDFF7B;font-weight:bold;">{}</td>'.format(data)
 					else:
 						tempStr += '<td>{}</td>'.format(data)
 
