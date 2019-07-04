@@ -499,7 +499,7 @@ def mail_text_table(commodity, dateList, arg):
 	return
 
 def update_db(date, commodity):
-	dbFile = os.path.join(HomeDir, DbDir, str(now.year)+ '.csv')
+	dbFile = os.path.join(HomeDir, DbDir, str(date.year)+ '.csv')
 	#print(dbFile)
 	dateStr = date.strftime('%d%b%Y')
 	with open(dbFile, 'a', encoding='utf-8', newline='') as csv_file:
@@ -619,10 +619,11 @@ if len(sys.argv) == 2 and sys.argv[1] == 'updatedb':
 			exit()
 
 	## Incase the cron is scheduled to run on inactive time
+	c_now = now
 	if (ClosedHours[0] <= now.hour <= ClosedHours[1]):
-		now -= datetime.timedelta(days=1)
+		c_now -= datetime.timedelta(days=1)
 
-	if (now.strftime('%a') in SkipDays):
+	if (c_now.strftime('%a') in SkipDays):
 		logging.debug('Skipping DB update: Skipping updates on holidays')
 		exit()
 	
@@ -630,12 +631,12 @@ if len(sys.argv) == 2 and sys.argv[1] == 'updatedb':
 	commodity = vijay_mcx()
 
 	## Write to db YYYY.csv
-	update_db(now, commodity)
+	update_db(c_now, commodity)
 	touch(StatFile)
 	logging.debug('Data Updated now')
 
 	## Sends mail
-	process_commodity (now, defaultDays, defaultPercent, console=False, mail=True)
+	process_commodity (c_now, defaultDays, defaultPercent, console=False, mail=True)
 
 	#pprint(commodity)
 else:
