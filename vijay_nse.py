@@ -40,6 +40,12 @@ defaultPercent = 25
 ## default Days to consider data
 defaultDays = 90
 
+## default Max logs
+defaultMaxLog = 50
+
+## tracking start date
+tracking_start_date = datetime.datetime.strptime('11Oct2018', '%d%b%Y')
+
 ## Will track only the commodity in the list
 TrackCommodity = ('GOLDM', 'SILVERM', 'ALUMINI', 'COPPER',
 				'LEADMINI', 'NICKEL', 'ZINCMINI', 'CRUDEOILM')
@@ -302,8 +308,27 @@ def DrawTable2Rows(commodity):
 
 	return htmlData
 
+def DrawTable3Log(commodity_HL_log):
+	htmlData = '<div>'
+	for k in TrackCommodity:
+		htmlData += '<br/><b>{}:</b><br/>'.format(k)
 
-def DrawHTMLData(commodity, dateList, arg):
+		i = 0
+		for date in commodity_HL_log[k]['DateList']:
+			if (i >= defaultMaxLog):
+				break
+
+			htmlData += ' {}:'.format(date)
+			if (commodity_HL_log[k][date][0] == 'H'):
+				htmlData += ' <span style="color:red">{}</span><br/>'.format(commodity_HL_log[k][date][1])
+			else:
+				htmlData += '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:green">{}</span><br/>'.format(commodity_HL_log[k][date][1])
+
+			i += 1
+	htmlData += '<br/>'
+	return htmlData
+
+def DrawHTMLData(commodity, dateList, commodity_HL_log, arg):
 	## VijayMCX
 	htmlData = (
 		'<html><body style="Font:15px Ariel,sans-serif;text-align:center;color:#000000"><table cellpadding="0" style="border-collapse:collapse"><tr><td><div style="width:min-context;">'
@@ -375,8 +400,10 @@ def DrawHTMLData(commodity, dateList, arg):
 
 	### Generate row for Table2
 	htmlData += DrawTable2Rows(commodity)
-
 	htmlData += '</table></div></br></br>'
+
+	### Generate table for log
+	htmlData += DrawTable3Log(commodity_HL_log)
 
 	htmlData += '</div></body></html>'
 
@@ -385,7 +412,7 @@ def DrawHTMLData(commodity, dateList, arg):
 	return htmlData
 
 	
-def print_text_table(commodity, dateList, arg):
+def print_text_table(commodity, dateList, commodity_HL_log, arg):
 
 	print (' Date: ' + arg['Date'] 
 			+ ' days: ' + arg['days'] 
@@ -439,6 +466,25 @@ def print_text_table(commodity, dateList, arg):
 		sno += 1
 	print(t2.get_string() + '\n\n')
 
+	## print commodity_HL_log
+	for k in TrackCommodity:
+		print ('\n{}:'.format(k))
+
+		i = 0
+		for date in commodity_HL_log[k]['DateList']:
+			if (i >= defaultMaxLog):
+				break
+
+			line = ' {}: '.format(date)
+			if (commodity_HL_log[k][date][0] == 'H'):
+				line += colored(commodity_HL_log[k][date][1], 'red')
+			else:
+				line += '\t' + colored(commodity_HL_log[k][date][1], 'green')
+			print(line)
+
+			i += 1
+
+
 def mail_get_info_from_file (FileName):
 	dict_mail = {}
 	try:
@@ -471,14 +517,14 @@ def mail_get_info_from_file (FileName):
 	return dict_mail
 
 
-def mail_text_table(commodity, dateList, arg):
+def mail_text_table(commodity, dateList, commodity_HL_log, arg):
 	dict_mail = mail_get_info_from_file (os.path.join(HomeDir, MailFile))
 	if (dict_mail == None):
 		return 
 	dict_mail['to'] += arg['mailids']
 
 	#pprint (dict_mail)
-	htmlData = DrawHTMLData(commodity, dateList, arg)
+	htmlData = DrawHTMLData(commodity, dateList, commodity_HL_log, arg)
 
 	message = MIMEMultipart('alternative')
 	message['Subject'] = (' VijayMCX Date: ' + arg['Date'] 
@@ -514,7 +560,7 @@ def LoadCommodity(date, days):
 	if date.year != YearsToLoad[0]:
 		YearsToLoad.append(date.year)
 
-	for i in range(0,days):
+	for i in range(0,days+1):
 		DateList.append(date.strftime('%d%b%Y'))	
 		date -= datetime.timedelta(days=1)	
 
@@ -538,6 +584,67 @@ def LoadCommodity(date, days):
 	
 	#pprint (commodity)
 	return commodity, DateList
+
+def vijay_generate_log(date, days, max_log=defaultMaxLog):
+	## set default
+	commodity_LH_log = {}
+	for k in TrackCommodity:
+		commodity_LH_log[k] = {}
+
+		## Used to log high/low after warmup is over
+		commodity_LH_log[k]['warmup_days'] = 0
+
+		## DateList to track entries
+		commodity_LH_log[k]['DateList'] = []
+
+		## Current High/Low value
+		commodity_LH_log[k]['current_high'] = 'NA'
+		commodity_LH_log[k]['current_low'] = 'NA'
+
+	## load values from DB
+	for yr in range(tracking_start_date.year, date.year+1):
+		## To handle the leap year case,
+		## last_day - first_day + 1
+		last_day = datetime.datetime(yr,12,31)
+		first_day = datetime.datetime(yr,1,1)
+		commodity,dateList = LoadCommodity(last_day, (last_day-first_day).days)
+		#print (dateList)
+		#print (commodity)
+
+		for date in dateList:
+			for k in commodity.keys():
+				## Validate commodity & date
+				if k not in TrackCommodity:
+					continue
+				if date not in commodity[k].keys():
+					continue
+
+				## reset highLow
+				highLow = ''
+
+				if (commodity_LH_log[k]['current_high'] == 'NA'):
+					commodity_LH_log[k]['current_high'] = commodity[k][date]
+					highLow = 'H'
+				elif (commodity[k][date] > commodity_LH_log[k]['current_high']):
+					commodity_LH_log[k]['current_high'] = commodity[k][date]
+					highLow = 'H'
+
+				if (commodity_LH_log[k]['current_low'] == 'NA'):
+					commodity_LH_log[k]['current_low'] = commodity[k][date]
+					highLow = 'L'
+				elif (commodity[k][date] < commodity_LH_log[k]['current_low']):
+					commodity_LH_log[k]['current_low'] = commodity[k][date]
+					highLow = 'L'	
+
+				if ((commodity_LH_log[k]['warmup_days'] >= days) and
+					((highLow == 'H') or (highLow == 'L'))):
+					commodity_LH_log[k][date] = (highLow, commodity[k][date])
+					#print ('{}:{} {} {}'.format(k, date, highLow, commodity[k][date]))
+					commodity_LH_log[k]['DateList'].append(date)
+
+				commodity_LH_log[k]['warmup_days'] += 1
+
+	return commodity_LH_log
 
 def process_commodity (date, days, percent, mailList=[], console=True, mail=False):
 	arg = {}
@@ -568,11 +675,15 @@ def process_commodity (date, days, percent, mailList=[], console=True, mail=Fals
 	#pprint(dateList)
 	#pprint(commodity)
 
+	## generate high low log
+	commodity_HL_log = vijay_generate_log(date, days)
+	#pprint(commodity_HL_log)
+
 	if console:
-		print_text_table(commodity, dateList, arg)
+		print_text_table (commodity, dateList, commodity_HL_log, arg)
 
 	if mail:
-		mail_text_table (commodity, dateList, arg)
+		mail_text_table (commodity, dateList, commodity_HL_log, arg)
 
 	#pprint(commodity)
 
