@@ -309,12 +309,12 @@ def DrawTable2Rows(commodity):
 	return htmlData
 
 def DrawTable3Log(commodity_HL_log):
-	htmlData = '<div>'
+	htmlData = '<div style="text-align:left;">'
 	for k in TrackCommodity:
 		htmlData += '<br/><b>{}:</b><br/>'.format(k)
 
 		i = 0
-		for date in commodity_HL_log[k]['DateList']:
+		for date in reversed(commodity_HL_log[k]['DateList']):
 			if (i >= defaultMaxLog):
 				break
 
@@ -471,7 +471,7 @@ def print_text_table(commodity, dateList, commodity_HL_log, arg):
 		print ('\n{}:'.format(k))
 
 		i = 0
-		for date in commodity_HL_log[k]['DateList']:
+		for date in reversed(commodity_HL_log[k]['DateList']):
 			if (i >= defaultMaxLog):
 				break
 
@@ -598,8 +598,8 @@ def vijay_generate_log(date, days, max_log=defaultMaxLog):
 		commodity_LH_log[k]['DateList'] = []
 
 		## Current High/Low value
-		commodity_LH_log[k]['current_high'] = 'NA'
-		commodity_LH_log[k]['current_low'] = 'NA'
+		commodity_LH_log[k]['current_high'] = ('NA', 'NA', 0)
+		commodity_LH_log[k]['current_low']  = ('NA', 'NA', 0)
 
 	## load values from DB
 	for yr in range(tracking_start_date.year, date.year+1):
@@ -611,39 +611,54 @@ def vijay_generate_log(date, days, max_log=defaultMaxLog):
 		#print (dateList)
 		#print (commodity)
 
-		for date in dateList:
-			for k in commodity.keys():
-				## Validate commodity & date
-				if k not in TrackCommodity:
-					continue
+		for k in commodity.keys():
+			## Validate commodity 
+			if k not in TrackCommodity:
+				continue
+
+			for date in reversed(dateList):
+
+				## Validate date
 				if date not in commodity[k].keys():
 					continue
 
 				## reset highLow
 				highLow = ''
 
-				if (commodity_LH_log[k]['current_high'] == 'NA'):
-					commodity_LH_log[k]['current_high'] = commodity[k][date]
+				if (commodity_LH_log[k]['current_high'][1] == 'NA'):
+					commodity_LH_log[k]['current_high'] = (date, commodity[k][date])
 					highLow = 'H'
-				elif (commodity[k][date] > commodity_LH_log[k]['current_high']):
-					commodity_LH_log[k]['current_high'] = commodity[k][date]
+				elif (commodity[k][date] > commodity_LH_log[k]['current_high'][1]):
+					commodity_LH_log[k]['current_high'] = (date, commodity[k][date])
 					highLow = 'H'
 
-				if (commodity_LH_log[k]['current_low'] == 'NA'):
-					commodity_LH_log[k]['current_low'] = commodity[k][date]
+				if (commodity_LH_log[k]['current_low'][1] == 'NA'):
+					commodity_LH_log[k]['current_low'] = (date, commodity[k][date])
 					highLow = 'L'
-				elif (commodity[k][date] < commodity_LH_log[k]['current_low']):
-					commodity_LH_log[k]['current_low'] = commodity[k][date]
+				elif (commodity[k][date] < commodity_LH_log[k]['current_low'][1]):
+					commodity_LH_log[k]['current_low'] = (date, commodity[k][date])
 					highLow = 'L'	
 
-				if ((commodity_LH_log[k]['warmup_days'] >= days) and
+				if ((commodity_LH_log[k]['warmup_days'] > days) and
 					((highLow == 'H') or (highLow == 'L'))):
 					commodity_LH_log[k][date] = (highLow, commodity[k][date])
 					#print ('{}:{} {} {}'.format(k, date, highLow, commodity[k][date]))
 					commodity_LH_log[k]['DateList'].append(date)
+				elif (commodity_LH_log[k]['warmup_days'] == days):
+					## Make the first entry of low and high	
+					cur_low  = commodity_LH_log[k]['current_low']
+					cur_high = commodity_LH_log[k]['current_high']
+					commodity_LH_log[k][cur_low[0]]  = ('L', cur_low[1])
+					commodity_LH_log[k][cur_high[0]] = ('H', cur_high[1])
+					if (datetime.datetime.strptime(cur_low[0],'%d%b%Y') < 
+						datetime.datetime.strptime(cur_high[0],'%d%b%Y')):
+						commodity_LH_log[k]['DateList'].append(cur_low[0])
+						commodity_LH_log[k]['DateList'].append(cur_high[0])
+					else:
+						commodity_LH_log[k]['DateList'].append(cur_high[0])
+						commodity_LH_log[k]['DateList'].append(cur_low[0])
 
 				commodity_LH_log[k]['warmup_days'] += 1
-
 	return commodity_LH_log
 
 def process_commodity (date, days, percent, mailList=[], console=True, mail=False):
