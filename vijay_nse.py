@@ -17,7 +17,7 @@ import logging
 import re
 
 ## create dbDir within HomeDir manually
-HomeDir = '/home/gopi/gopi/vijay_nse/'
+HomeDir = '/home/pi/scripts/vijay_nse/'
 DbDir = 'db'
 StatFile = 'vijay_nse'
 MailFile = 'mail.cfg'
