@@ -585,6 +585,22 @@ def LoadCommodity(date, days):
 	#pprint (commodity)
 	return commodity, DateList
 
+def commodity_LH_make_first_entry(one_commodity_LH_log):
+	## Makes the first entry of low and high	
+	cur_low  = one_commodity_LH_log['current_low']
+	cur_high = one_commodity_LH_log['current_high']
+
+	one_commodity_LH_log[cur_low[0]]  = ('L', cur_low[1])
+	one_commodity_LH_log[cur_high[0]] = ('H', cur_high[1])
+
+	if (datetime.datetime.strptime(cur_low[0],'%d%b%Y') < 
+		datetime.datetime.strptime(cur_high[0],'%d%b%Y')):
+		one_commodity_LH_log['DateList'].append(cur_low[0])
+		one_commodity_LH_log['DateList'].append(cur_high[0])
+	else:
+		one_commodity_LH_log['DateList'].append(cur_high[0])
+		one_commodity_LH_log['DateList'].append(cur_low[0])
+
 def vijay_generate_log(date, days, max_log=defaultMaxLog):
 	## set default
 	commodity_LH_log = {}
@@ -645,20 +661,12 @@ def vijay_generate_log(date, days, max_log=defaultMaxLog):
 					#print ('{}:{} {} {}'.format(k, date, highLow, commodity[k][date]))
 					commodity_LH_log[k]['DateList'].append(date)
 				elif (commodity_LH_log[k]['warmup_days'] == days):
-					## Make the first entry of low and high	
-					cur_low  = commodity_LH_log[k]['current_low']
-					cur_high = commodity_LH_log[k]['current_high']
-					commodity_LH_log[k][cur_low[0]]  = ('L', cur_low[1])
-					commodity_LH_log[k][cur_high[0]] = ('H', cur_high[1])
-					if (datetime.datetime.strptime(cur_low[0],'%d%b%Y') < 
-						datetime.datetime.strptime(cur_high[0],'%d%b%Y')):
-						commodity_LH_log[k]['DateList'].append(cur_low[0])
-						commodity_LH_log[k]['DateList'].append(cur_high[0])
-					else:
-						commodity_LH_log[k]['DateList'].append(cur_high[0])
-						commodity_LH_log[k]['DateList'].append(cur_low[0])
-
+					commodity_LH_make_first_entry(commodity_LH_log[k])
 				commodity_LH_log[k]['warmup_days'] += 1
+			## incase we dont have enough entries,
+			## Just make it out with what we have
+			if (commodity_LH_log[k]['warmup_days'] < days):
+				commodity_LH_make_first_entry(commodity_LH_log[k])
 	return commodity_LH_log
 
 def process_commodity (date, days, percent, mailList=[], console=True, mail=False):
@@ -752,7 +760,7 @@ if len(sys.argv) == 2 and sys.argv[1] == 'updatedb':
 	if (c_now.strftime('%a') in SkipDays):
 		logging.debug('Skipping DB update: Skipping updates on holidays')
 		exit()
-	
+
 	## Get commodity from server
 	commodity = vijay_mcx()
 
