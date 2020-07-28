@@ -10,8 +10,9 @@ import datetime
 HomeDir = '/home/pi/scripts/vijay_nse/'
 xlsDir  = 'xls-data/'
 outDir  = 'output/'
-TrackCommodity = ('GOLDM', 'SILVERM', 'ALUMINI', 'COPPER',
-		'LEADMINI', 'NICKEL', 'ZINCMINI', 'CRUDEOIL')
+
+TrackCommodity = ('GOLDM', 'SILVERM', 'ALUMINIUM', 'COPPER',
+					'LEAD', 'NICKEL', 'ZINC', 'CRUDEOIL')
 
 def process_excel_sheet():
 	DictCommodity = {}

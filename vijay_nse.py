@@ -47,8 +47,8 @@ defaultMaxLog = 50
 tracking_start_date = datetime.datetime.strptime('11Oct2018', '%d%b%Y')
 
 ## Will track only the commodity in the list
-TrackCommodity = ('GOLDM', 'SILVERM', 'ALUMINI', 'COPPER',
-				'LEADMINI', 'NICKEL', 'ZINCMINI', 'CRUDEOIL')
+TrackCommodity = ('GOLDM', 'SILVERM', 'ALUMINIUM', 'COPPER',
+					'LEAD', 'NICKEL', 'ZINC', 'CRUDEOIL')
 
 ## Title for Table1 and Table2
 Table1Title = ('Sno', 'Date') + TrackCommodity
