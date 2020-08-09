@@ -14,6 +14,7 @@ import datetime
 import csv
 import sys
 import logging
+import logging.handlers
 import re
 
 ## create dbDir within HomeDir manually
@@ -118,7 +119,7 @@ def vijay_mcx():
 
  for c in TrackCommodity:
   if c not in commodity.keys():
-   logging.warning('commodity detail [' + c + '] missing')
+   my_logger.warning('commodity detail [' + c + '] missing')
    
  return (commodity)
  
@@ -490,7 +491,7 @@ def mail_get_info_from_file (FileName):
 	try:
 		fp = open (FileName, 'r')
 	except:
-		print (' ERROR: ' + FileName + ' not found')
+		my_logger.error ('Unable to open Mail config file '+ FileName)
 		return None
 	else:
 		for line in fp:
@@ -508,11 +509,11 @@ def mail_get_info_from_file (FileName):
 				dict_mail[key] = t1[1].strip()
 				dict_mail['port'] = int(t1[2].strip())
 			else:
-				print (' ERROR: Parse failed [' + line + ']')
+				my_logger.error ('Parsing '+ FileName +' failed')
 				return None
 
 		if len (dict_mail) != 5:
-			print (' ERROR: Need all 5 params (from, to, password, server, port)')
+			my_logger.error ('Few params missing (from,to,password,server,port)')
 			return None
 	return dict_mail
 
@@ -540,7 +541,7 @@ def mail_text_table(commodity, dateList, commodity_HL_log, arg):
 	with smtplib.SMTP_SSL(dict_mail['server'], dict_mail['port'], context=cxt) as server:
 		server.login(dict_mail['from'], dict_mail['password'])
 		server.sendmail(dict_mail['from'], dict_mail['to'], message.as_string())
-		logging.debug('Mail sent successfully to ' + ','.join(dict_mail['to']))
+		my_logger.debug('Mail sent successfully to ' + ','.join(dict_mail['to']))
 
 	return
 
@@ -735,13 +736,33 @@ HomeDir = os.path.join(*t1)
 
 ## Gets current time
 now = datetime.datetime.now()
-logging.basicConfig(level=logging.DEBUG, format='[%(asctime)s] %(levelname)s: %(message)s', datefmt='%d-%b-%y %H:%M:%S')
+
+############################
+## Basic syslog configuration
+logging.basicConfig(level=logging.DEBUG, 
+                    format='[%(asctime)s] %(levelname)s: %(message)s', 
+                    datefmt='%d-%b-%y %H:%M:%S')
+
+## Get a logger for us
+my_logger = logging.getLogger('vijay_nse')
+
+## Open log handler
+log_handler = logging.handlers.SysLogHandler(address = '/dev/log')
+
+## Not sure if this is correct way of doing
+## But we could add tags
+log_handler.ident = 'vijay_nse: '
+
+## Attach the handler
+my_logger.addHandler(log_handler)
+############################
+
 
 if len(sys.argv) == 2 and sys.argv[1] == 'updatedb':
 	## Check if touch file is updated.
 	## If so, just quit.
 	## if not updatedb, touch file, quit.
-	logging.debug('Trying DB update')
+	my_logger.debug('Trying DB update')
 	StatFile = os.path.join(HomeDir, StatFile)
 	if (os.path.exists(StatFile)):
 		fs = os.stat(StatFile)
@@ -749,7 +770,7 @@ if len(sys.argv) == 2 and sys.argv[1] == 'updatedb':
 
 		## do nothing if we have already updated db	
 		if (now.date() == mtime.date()):
-			logging.debug('Skipping DB update: Already updated')
+			my_logger.debug('Skipping DB update: Already updated')
 			exit()
 
 	## Incase the cron is scheduled to run on inactive time
@@ -758,7 +779,7 @@ if len(sys.argv) == 2 and sys.argv[1] == 'updatedb':
 		c_now -= datetime.timedelta(days=1)
 
 	if (c_now.strftime('%a') in SkipDays):
-		logging.debug('Skipping DB update: Skipping updates on holidays')
+		my_logger.debug('Skipping DB update: Skipping updates on holidays')
 		exit()
 
 	## Get commodity from server
@@ -767,7 +788,7 @@ if len(sys.argv) == 2 and sys.argv[1] == 'updatedb':
 	## Write to db YYYY.csv
 	update_db(c_now, commodity)
 	touch(StatFile)
-	logging.debug('Data Updated now')
+	my_logger.debug('Data Updated now')
 
 	## Sends mail
 	process_commodity (c_now, defaultDays, defaultPercent, console=False, mail=True)
@@ -779,7 +800,7 @@ else:
 	date = now
 	mail = False
 	mailList = []
-
+	
 	if len(sys.argv) > 1:
 		for argv in sys.argv[1:]:
 			if (argv == 'help'):
