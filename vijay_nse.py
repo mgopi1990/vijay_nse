@@ -510,7 +510,9 @@ def mail_get_info_from_file (FileName):
 				dict_mail['port'] = int(t1[2].strip())
 			else:
 				my_logger.error ('Parsing '+ FileName +' failed')
+				fp.close()
 				return None
+		fp.close()
 
 		if len (dict_mail) != 5:
 			my_logger.error ('Few params missing (from,to,password,server,port)')
@@ -739,8 +741,8 @@ now = datetime.datetime.now()
 
 ############################
 ## Basic syslog configuration
-logging.basicConfig(level=logging.DEBUG, 
-                    format='[%(asctime)s] %(levelname)s: %(message)s', 
+logging.basicConfig(level=logging.DEBUG,
+                    format='[%(asctime)s] %(levelname)s: %(message)s',
                     datefmt='%d-%b-%y %H:%M:%S')
 
 ## Get a logger for us
@@ -756,7 +758,6 @@ log_handler.ident = 'vijay_nse: '
 ## Attach the handler
 my_logger.addHandler(log_handler)
 ############################
-
 
 if len(sys.argv) == 2 and sys.argv[1] == 'updatedb':
 	## Check if touch file is updated.
@@ -800,7 +801,7 @@ else:
 	date = now
 	mail = False
 	mailList = []
-	
+
 	if len(sys.argv) > 1:
 		for argv in sys.argv[1:]:
 			if (argv == 'help'):
