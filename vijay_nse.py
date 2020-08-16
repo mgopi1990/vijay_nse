@@ -572,7 +572,13 @@ def LoadCommodity(date, days):
 	for year in YearsToLoad:
 		dbFile = os.path.join(HomeDir, DbDir, str(year) + '.csv')
 		#print (dbFile)
-		with open (dbFile, 'r') as csv_file:
+		try:
+			csv_file = open (dbFile, 'r')
+		except:
+			## Just log
+			my_logger.warning ('Failed to open dbFile '+ dbFile)
+			continue
+		else:
 			csv_reader = csv.reader(csv_file)
 			for row in csv_reader:
 				#print (row)
@@ -584,7 +590,7 @@ def LoadCommodity(date, days):
 				# have commodity name, date as index
 				commodity.setdefault(row[1], {})
 				commodity[row[1]].setdefault(row[0], float(row[2]))
-	
+			csv_file.close()
 	#pprint (commodity)
 	return commodity, DateList
 
