@@ -79,6 +79,11 @@ Table2Title = ('Sno', 'Commodity', 'Low', 'High', 'LowLimit', 'UpLimit',
 link = 'http://market.mcxdata.in/'
 def vijay_mcx():
 
+ # to handle ssl certificate related errors
+ if (not os.environ.get('PYTHONHTTPSVERIFY', '') and
+      getattr(ssl, '_create_unverified_context', None)):
+  ssl._create_default_https_context = ssl._create_unverified_context
+
  page = urlopen(link)
  
  soup = BeautifulSoup(page, 'html.parser')
