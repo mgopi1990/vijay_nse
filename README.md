@@ -31,3 +31,13 @@ $ vijay_nse.py updatedb
 	0       1-8     *       *       *       /home/pi/scripts/vijay_nse/vijay_nse.py updatedb >> /home/pi/scripts/vijay_nse/vijay_nse.log
 
 
+############################
+
+./parse_data.py
+
+Sometimes when raspberry pi crashes, or the daemon didnt run for long. Vijay will share the xls file.
+We need to convert the xls file to .csv for vijay_nse.py to understand.
+
+Place the xls file into xls-data/ directory, and run. Output generated into folder output/
+
+############################
