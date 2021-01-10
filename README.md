@@ -30,6 +30,11 @@ $ vijay_nse.py updatedb
 
 	0       1-8     *       *       *       /home/pi/scripts/vijay_nse/vijay_nse.py updatedb >> /home/pi/scripts/vijay_nse/vijay_nse.log
 
+$ vijay_nse.py backup
+	sends backup of the db/ and .py. Add it to cron to run every saturday
+
+	5       1     *       *       *       /home/pi/scripts/vijay_nse/vijay_nse.py updatedb >> /home/pi/scripts/vijay_nse/vijay_nse.log
+
 
 ############################
 

@@ -8,6 +8,8 @@ from prettytable import PrettyTable
 from termcolor import colored
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.mime.base import MIMEBase
+from email import encoders
 import smtplib, ssl
 import os
 import datetime
@@ -16,12 +18,16 @@ import sys
 import logging
 import logging.handlers
 import re
+from zipfile import ZipFile
 
 ## create dbDir within HomeDir manually
 HomeDir = '/home/pi/scripts/vijay_nse/'
 DbDir = 'db'
 StatFile = 'vijay_nse'
 MailFile = 'mail.cfg'
+
+## Used to compress and backup
+ZipFiles = ['vijay_nse.py', 'parse_data.py', DbDir]
 
 ## During closed hours, previous day's date will be used.
 ## Eg. if the script is run at 2AM then the data taken 
@@ -525,23 +531,15 @@ def mail_get_info_from_file (FileName):
 	return dict_mail
 
 
-def mail_text_table(commodity, dateList, commodity_HL_log, arg):
+def send_mail(message, extraMailIds = []):
 	dict_mail = mail_get_info_from_file (os.path.join(HomeDir, MailFile))
 	if (dict_mail == None):
 		return 
-	dict_mail['to'] += arg['mailids']
 
-	#pprint (dict_mail)
-	htmlData = DrawHTMLData(commodity, dateList, commodity_HL_log, arg)
-
-	message = MIMEMultipart('alternative')
-	message['Subject'] = (' VijayMCX Date: ' + arg['Date'] 
-							+ ' days: ' + arg['days'] 
-							+ ' percent: ' + arg['percent'])
+	dict_mail['to'] += extraMailIds
 	message['From'] = dict_mail['from']
 	message['To'] 	= ', '.join(dict_mail['to'])
-	message.attach(MIMEText(htmlData, "html"))
-	#print (message.as_string())
+	#pprint (dict_mail)
 
 	# Create secure connection with server and send email
 	cxt = ssl.create_default_context()
@@ -551,6 +549,82 @@ def mail_text_table(commodity, dateList, commodity_HL_log, arg):
 		my_logger.debug('Mail sent successfully to ' + ','.join(dict_mail['to']))
 
 	return
+
+
+def mail_text_table(commodity, dateList, commodity_HL_log, arg):
+	htmlData = DrawHTMLData(commodity, dateList, commodity_HL_log, arg)
+
+	message = MIMEMultipart('alternative')
+	message['Subject'] = (' VijayMCX Date: ' + arg['Date'] 
+							+ ' days: ' + arg['days'] 
+							+ ' percent: ' + arg['percent'])
+	message.attach(MIMEText(htmlData, "html"))
+	#print (message.as_string())
+
+	send_mail(message, arg['mailids'])
+
+	return
+
+
+def zip_recursively_add_files_folder (newzip, file_or_folder):
+	if os.path.isfile(file_or_folder):
+		newzip.write(file_or_folder)
+	elif os.path.isdir(file_or_folder):
+		for files in os.listdir(file_or_folder):
+			full_path = os.path.join(file_or_folder, files)
+			zip_recursively_add_files_folder (newzip, full_path)
+
+
+def process_mail_backup(date, app_name):
+	dateStr = date.strftime('%d%b%Y')
+
+	## Prepare the zipfile
+	ZipFileName = 'bkp_{}.zip'.format(dateStr)
+
+	htmlData = (
+		'<html><body style="Font:15px Ariel,sans-serif;">'
+		+ 'Hi Team,'
+		+ '<br/><br/>Please find the backup done on {}.'.format(dateStr)
+		+ '<br/><br/>Thanks and Regards, '
+		+ '<br/>{}'.format(app_name)
+		+ '</body></html>'
+		)
+
+	message = MIMEMultipart('alternative')
+	message['Subject'] = ' VijayMCX Backup {}'.format(ZipFileName)
+	message.attach(MIMEText(htmlData, "html"))
+	#print (message.as_string())
+
+	os.chdir(HomeDir)
+	with ZipFile(ZipFileName, 'w') as newzip:
+		for files in ZipFiles:
+			zip_recursively_add_files_folder (newzip, files)
+
+	## instance of MIMEBase and named as p
+	p = MIMEBase('application', 'octet-stream')
+
+	with open(ZipFileName, 'rb') as fp:
+		## To change the payload into encoded form
+		p.set_payload(fp.read())
+
+	## encode into base64
+	encoders.encode_base64(p)
+
+	## add header for attachment
+	p.add_header('Content-Disposition', 
+					"attachment; filename= {}" .format(ZipFileName))
+
+	## attach the instance 'p' to instance 'msg'
+	message.attach(p)
+
+	## send mail
+	send_mail(message)
+
+	## delete the temp file
+	os.remove (ZipFileName)
+
+	return
+
 
 def update_db(date, commodity):
 	dbFile = os.path.join(HomeDir, DbDir, str(date.year)+ '.csv')
@@ -807,6 +881,8 @@ if len(sys.argv) == 2 and sys.argv[1] == 'updatedb':
 	process_commodity (c_now, defaultDays, defaultPercent, console=False, mail=True)
 
 	#pprint(commodity)
+elif len(sys.argv) == 2 and sys.argv[1] == 'backup':
+	process_mail_backup(now, sys.argv[0])
 else:
 	percent = defaultPercent
 	days = defaultDays 	
