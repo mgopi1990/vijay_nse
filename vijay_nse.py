@@ -729,6 +729,7 @@ def touch(fname):
 	os.utime(fname, None)
 
 def printHelpAndExit():
+	argv = sys.argv
 	print('\r' + argv[0] + ' help\tDisplays this message')
 	print('\r' + argv[0] + ' <date>\tProcesses for the date.'
 			   + ' Uses today if no arg is specified')
