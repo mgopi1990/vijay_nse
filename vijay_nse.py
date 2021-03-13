@@ -811,6 +811,7 @@ def printHelpAndExit():
 	print('\r' + argv[0] + ' percent=25\tSet percent')
 	print('\r' + argv[0] + ' mail=id1,id2..\tSends mail.'
 						 + ' Additional mailIds can be specified to add in mailing list')
+	print('\r' + argv[0] + ' backup\tBackup data and mails') 
 	exit()
 
 ## program starts ##
