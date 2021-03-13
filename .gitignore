@@ -6,5 +6,7 @@ db/
 xls-data/
 output/
 mail.cfg
+mail_test.cfg
+mail_orig.cfg
 vijay_nse
 vijay_nse.log

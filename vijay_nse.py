@@ -48,7 +48,7 @@ defaultPercent = 25
 defaultDays = 90
 
 ## default Max logs
-defaultMaxLog = 50
+defaultMaxLog = 5000
 
 ## tracking start date
 tracking_start_date = datetime.datetime.strptime('11Oct2018', '%d%b%Y')
@@ -326,15 +326,15 @@ def DrawTable3Log(commodity_HL_log):
 		htmlData += '<br/><b>{}:</b><br/>'.format(k)
 
 		i = 0
-		for date in reversed(commodity_HL_log[k]['DateList']):
+		for date,price,HighOrLow in reversed(commodity_HL_log[k]['Entries']):
 			if (i >= defaultMaxLog):
 				break
 
 			htmlData += ' {}:'.format(date)
-			if (commodity_HL_log[k][date][0] == 'H'):
-				htmlData += ' <span style="color:red">{}</span><br/>'.format(commodity_HL_log[k][date][1])
+			if (HighOrLow == 'H'):
+				htmlData += ' <span style="color:red">{}</span><br/>'.format(price)
 			else:
-				htmlData += '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:green">{}</span><br/>'.format(commodity_HL_log[k][date][1])
+				htmlData += '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:green">{}</span><br/>'.format(price)
 
 			i += 1
 	htmlData += '<br/>'
@@ -483,15 +483,15 @@ def print_text_table(commodity, dateList, commodity_HL_log, arg):
 		print ('\n{}:'.format(k))
 
 		i = 0
-		for date in reversed(commodity_HL_log[k]['DateList']):
+		for date,price,HighOrLow in reversed(commodity_HL_log[k]['Entries']):
 			if (i >= defaultMaxLog):
 				break
 
 			line = ' {}: '.format(date)
-			if (commodity_HL_log[k][date][0] == 'H'):
-				line += colored(commodity_HL_log[k][date][1], 'red')
+			if (HighOrLow == 'H'):
+				line += colored(price, 'red')
 			else:
-				line += '\t' + colored(commodity_HL_log[k][date][1], 'green')
+				line += '\t' + colored(price, 'green')
 			print(line)
 
 			i += 1
@@ -673,6 +673,20 @@ def LoadCommodity(date, days):
 	#pprint (commodity)
 	return commodity, DateList
 
+
+def days_in_year(yr):
+	## To handle the leap year case,
+	## last_day - first_day + 1
+	last_day = datetime.datetime(yr,12,31)
+	first_day = datetime.datetime(yr,1,1)
+	return ((last_day-first_day).days)
+
+
+def LoadWholeYrCommodity(yr):
+	last_day = datetime.datetime(yr,12,31)
+	return LoadCommodity(last_day, days_in_year(yr))
+
+
 def commodity_LH_make_first_entry(one_commodity_LH_log):
 	## Makes the first entry of low and high	
 	cur_low  = one_commodity_LH_log['current_low']
@@ -689,73 +703,208 @@ def commodity_LH_make_first_entry(one_commodity_LH_log):
 		one_commodity_LH_log['DateList'].append(cur_high[0])
 		one_commodity_LH_log['DateList'].append(cur_low[0])
 
-def vijay_generate_log(date, days, max_log=defaultMaxLog):
-	## set default
+
+def get_commodity_high_price_from_prefetch (k, low_interval_date,
+									high_interval_date, prefetch_commodity):
+	high_price = -1
+	high_date = low_interval_date
+
+	temp_date = low_interval_date
+	for commodity in prefetch_commodity:
+		if k not in commodity.keys():
+			continue
+
+		while (temp_date <= high_interval_date):
+			temp_date_str = temp_date.strftime('%d%b%Y')
+			price = commodity[k].get(temp_date_str, 'NA')
+			if ((price != 'NA') and (price > high_price)):
+				high_date, high_price = temp_date, price
+			temp_date += datetime.timedelta(days=1)	
+
+	return high_date, high_price
+
+
+def get_commodity_low_price_from_prefetch (k, low_interval_date,
+									high_interval_date, prefetch_commodity):
+	low_price = -1 
+	low_date = low_interval_date
+
+	temp_date = low_interval_date
+	for commodity in prefetch_commodity:
+		if k not in commodity.keys():
+			continue
+
+		while (temp_date <= high_interval_date):
+			temp_date_str = temp_date.strftime('%d%b%Y') 
+			
+			price = commodity[k].get(temp_date_str, 'NA')
+			if (price != 'NA'):
+				if (low_price == -1):
+					low_date, low_price = temp_date, price
+				elif (price < low_price):
+					low_date, low_price = temp_date, price
+
+			temp_date += datetime.timedelta(days=1)	
+
+	return low_date, low_price
+
+
+def get_commodity_price_from_prefetch (k, temp_date_str, prefetch_commodity):
+	for commodity in prefetch_commodity:
+		if k in commodity.keys():
+			price = commodity[k].get(temp_date_str, 'NA')
+			if price != 'NA':
+				return price
+	return -1
+
+def init_commodity_LH_log():
 	commodity_LH_log = {}
 	for k in TrackCommodity:
 		commodity_LH_log[k] = {}
 
-		## Used to log high/low after warmup is over
-		commodity_LH_log[k]['warmup_days'] = 0
-
 		## DateList to track entries
-		commodity_LH_log[k]['DateList'] = []
+		commodity_LH_log[k]['Entries'] = []
 
 		## Current High/Low value
-		commodity_LH_log[k]['current_high'] = ('NA', 'NA', 0)
-		commodity_LH_log[k]['current_low']  = ('NA', 'NA', 0)
+		## (Date, DateStr, Value) pair
+		commodity_LH_log[k]['current_high'] = (tracking_start_date, '', -1)
+		commodity_LH_log[k]['current_low']  = (tracking_start_date, '', -1)
+	return commodity_LH_log
 
-	## load values from DB
-	for yr in range(tracking_start_date.year, date.year+1):
-		## To handle the leap year case,
-		## last_day - first_day + 1
-		last_day = datetime.datetime(yr,12,31)
-		first_day = datetime.datetime(yr,1,1)
-		commodity,dateList = LoadCommodity(last_day, (last_day-first_day).days)
-		#print (dateList)
-		#print (commodity)
 
-		for k in commodity.keys():
-			## Validate commodity 
-			if k not in TrackCommodity:
+def init_prefetch_commodity():
+	prefetch_dateList = [[], []]
+	prefetch_commodity = [{}, {}]
+	return prefetch_commodity, prefetch_dateList
+	
+
+def vijay_generate_log(date, interval_days, max_log=defaultMaxLog):
+
+	## initialize defaults
+	commodity_LH_log = init_commodity_LH_log()
+
+	## initialize prefetch banks
+	prefetch_commodity, prefetch_dateList = init_prefetch_commodity()
+
+	prefetch_commodity[1], prefetch_dateList[1] = \
+				LoadWholeYrCommodity(tracking_start_date.year)
+
+	## we assume an imaginary low-high date window with width of 90days(default)
+	## with it, we slide along, from tracking_start to current_today
+	## we fetch high, low price in these sliding range, and update accordingly
+	low_interval_date = tracking_start_date
+	high_interval_date = (tracking_start_date +
+									datetime.timedelta(days=interval_days))
+	while high_interval_date <= date:
+		if (low_interval_date.year != high_interval_date.year):
+			prefetch_commodity[0] = prefetch_commodity[1]
+			prefetch_dateList[0] = prefetch_dateList[1]
+
+			#print (prefetch_dateList[0])
+			#print (prefetch_commodity[0])
+
+			prefetch_commodity[1], prefetch_dateList[1] = \
+					LoadWholeYrCommodity(high_interval_date.year)
+
+		for k in TrackCommodity:
+			temp_date_str = high_interval_date.strftime('%d%b%Y')
+
+			if ((commodity_LH_log[k]['current_high'][2] == -1) or 
+				(commodity_LH_log[k]['current_high'][0] < low_interval_date)):
+				temp_date, price = \
+						get_commodity_high_price_from_prefetch (k, 
+										low_interval_date,
+										high_interval_date, 
+										prefetch_commodity)
+				if (price >= 0):
+					commodity_LH_log[k]['current_high'] = \
+							(temp_date, temp_date.strftime('%d%b%Y'), price)
+					commodity_LH_log[k]['Entries'].append(
+										(temp_date_str, price, 'H'))
+
+			if ((commodity_LH_log[k]['current_low'][2] == -1) or
+				(commodity_LH_log[k]['current_low'][0] < low_interval_date)):
+				temp_date, price = \
+						get_commodity_low_price_from_prefetch (k, 
+										low_interval_date,
+										high_interval_date, 
+										prefetch_commodity)
+				if (price >= 0):
+					commodity_LH_log[k]['current_low'] = \
+							(temp_date, temp_date.strftime('%d%b%Y'), price)
+					commodity_LH_log[k]['Entries'].append(
+										(temp_date_str, price, 'L'))
+
+			price = get_commodity_price_from_prefetch (k,
+									temp_date_str, prefetch_commodity) 
+		
+			## not found
+			if (price < 0):
 				continue
 
-			for date in reversed(dateList):
+			if (price > commodity_LH_log[k]['current_high'][2]): 
+				commodity_LH_log[k]['current_high'] = \
+							(high_interval_date, temp_date_str, price)
+				commodity_LH_log[k]['Entries'].append(
+										(temp_date_str, price, 'H'))
 
-				## Validate date
-				if date not in commodity[k].keys():
-					continue
+			if (price < commodity_LH_log[k]['current_low'][2]): 
+				commodity_LH_log[k]['current_low'] = \
+							(high_interval_date, temp_date_str, price)
+				commodity_LH_log[k]['Entries'].append(
+										(temp_date_str, price, 'L'))
+					
+		low_interval_date += datetime.timedelta(days=1)	
+		high_interval_date += datetime.timedelta(days=1)	
 
-				## reset highLow
-				highLow = ''
-
-				if (commodity_LH_log[k]['current_high'][1] == 'NA'):
-					commodity_LH_log[k]['current_high'] = (date, commodity[k][date])
-					highLow = 'H'
-				elif (commodity[k][date] > commodity_LH_log[k]['current_high'][1]):
-					commodity_LH_log[k]['current_high'] = (date, commodity[k][date])
-					highLow = 'H'
-
-				if (commodity_LH_log[k]['current_low'][1] == 'NA'):
-					commodity_LH_log[k]['current_low'] = (date, commodity[k][date])
-					highLow = 'L'
-				elif (commodity[k][date] < commodity_LH_log[k]['current_low'][1]):
-					commodity_LH_log[k]['current_low'] = (date, commodity[k][date])
-					highLow = 'L'	
-
-				if ((commodity_LH_log[k]['warmup_days'] > days) and
-					((highLow == 'H') or (highLow == 'L'))):
-					commodity_LH_log[k][date] = (highLow, commodity[k][date])
-					#print ('{}:{} {} {}'.format(k, date, highLow, commodity[k][date]))
-					commodity_LH_log[k]['DateList'].append(date)
-				elif (commodity_LH_log[k]['warmup_days'] == days):
-					commodity_LH_make_first_entry(commodity_LH_log[k])
-				commodity_LH_log[k]['warmup_days'] += 1
-			## incase we dont have enough entries,
-			## Just make it out with what we have
-			if (commodity_LH_log[k]['warmup_days'] < days):
-				commodity_LH_make_first_entry(commodity_LH_log[k])
 	return commodity_LH_log
+
+
+def vijay_generate_log_crude_debug (date, interval_days=defaultDays, max_log=defaultMaxLog):
+	## initialize defaults
+	commodity_LH_log = init_commodity_LH_log()
+
+	## initialize prefetch banks
+	prefetch_commodity, prefetch_dateList = init_prefetch_commodity()
+
+	## Load all data
+	for yr in range(tracking_start_date.year, date.year+1):
+		prefetch_commodity[1], prefetch_dateList[1] = LoadWholeYrCommodity(yr)
+		prefetch_dateList[1].reverse()
+		prefetch_commodity[0].update(prefetch_commodity[1])
+		prefetch_dateList[0].extend(prefetch_dateList[1])
+	
+	print (prefetch_dateList[0])
+	commodity = prefetch_commodity[0]
+	for k in TrackCommodity:
+		print ('{}: '.format(k))
+
+		low_interval_date = tracking_start_date
+		high_interval_date = (tracking_start_date +
+									datetime.timedelta(days=interval_days))
+		while high_interval_date <= date:
+			temp_date_str = high_interval_date.strftime('%d%b%Y')
+
+			high_date, high_price = get_commodity_high_price_from_prefetch (k, 
+															low_interval_date,
+															high_interval_date, 
+															prefetch_commodity)
+	
+			low_date, low_price = get_commodity_high_price_from_prefetch (k, 
+															low_interval_date,
+															high_interval_date, 
+															prefetch_commodity)
+			if ((k in commodity.keys()) and 	
+					(temp_date_str in commodity[k].keys())):
+				print (' {}: {} | LOW:({}: {}) HIGH:({}: {})'.format(
+									temp_date_str, 
+									commodity[k][temp_date_str],
+									low_date.strftime('%d%b%Y'), low_price, 
+									high_date.strftime('%d%b%Y'), high_price))
+	
+			low_interval_date += datetime.timedelta(days=1)	
+			high_interval_date += datetime.timedelta(days=1)	
+
 
 def process_commodity (date, days, percent, mailList=[], console=True, mail=False):
 	arg = {}
@@ -789,6 +938,7 @@ def process_commodity (date, days, percent, mailList=[], console=True, mail=Fals
 	## generate high low log
 	commodity_HL_log = vijay_generate_log(date, days)
 	#pprint(commodity_HL_log)
+	vijay_generate_log_crude_debug(date, days)
 
 	if console:
 		print_text_table (commodity, dateList, commodity_HL_log, arg)
