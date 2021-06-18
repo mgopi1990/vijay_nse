@@ -202,10 +202,69 @@ def PrepareRowData(sno, date, commodity):
 	#print (rowData)
 	return rowData
 
+def DrawHTMLHeader(arg):
+	htmlData = (
+		'<table cellpadding="0" style="border-collapse:collapse"><tr><td><div style="width:min-context;">'
+		+ '<div style="width:min-content;background:#000000">'
+		+ '<h1 style="letter-spacing:1px;font-weight:bold;font-size:40px;display:block;margin:0">&nbsp;'
+		+ '<span style="color:#DE2600">VIJAY</span><span style="color:#FFFFFF">MCX</span>&nbsp;</h1>'
+		+ '</div></td></tr>')
+
+	htmlData += '<tr><td><div style="width:min-content;">'
+
+	## DateTime when mail is sent
+	htmlData += (
+		'<ul style="list-style-type:none;display:flex;padding:0;margin:3px 0px 0px 0px">'
+		+ '<li style="background:#000000;color:#FFFFFF;font-weight:bold;padding:8px;margin:2px">Mailed&nbsp;Time</li>'
+		+ '<li style="background:#D9D9D9;padding:8px;margin:2px">'
+		+ now.strftime('%d%b%Y') + '</li>'
+		+ '<li style="background:#D9D9D9;padding:8px;margin:2px">'
+		+ now.strftime('%H:%M:%S') + '</li>' + '</ul></td></tr>')
+
+	## Date, Days, Percentage
+	htmlData += (
+		'<tr><td><ul style="list-style-type:none;display:flex;padding:0;margin:2px 0px 0px 0px">'
+		+ '<li style="background:#D9D9D9;padding:8px;margin:2px">'
+		+ datetime.datetime.strptime(arg['Date'],'%d%b%Y').strftime('%A') + '</li>' 
+		+ '<li style="background:#D9D9D9;padding:8px;margin:2px">'
+		+ arg['Date'] + '</li>'
+		+ '<li style="background:#D9D9D9;padding:8px;margin:2px">'
+		+ arg['days'] + '&nbsp;days' + '</li>'
+		+ '<li style="background:#D9D9D9;padding:8px;margin:2px">'
+		+ arg['percent'] + '%' + '</li>' 
+		+ '<li style="background:#DE2600;color:#FFFFFF;font-weight:bold;padding:8px;margin:2px">'
+		+ arg['by'] + '</li>' 
+		+ '</ul></td></tr>') 
+
+	## Url
+	htmlData += (
+		'<tr><td><ul style="list-style-type:none;display:flex;padding:0;margin:2px 0px 0px 0px">'
+		+ '<li style="background:#000000;color:#FFFFFF;font-weight:bold;padding:8px;margin:2px">Url</li>'
+		+ '<li style="background:#D9D9D9;padding:8px;margin:2px">'
+		+ '<a style="color:#000000;font-size:15px;text-decoration:none;" href="' + link + '">' + link + '</a>' + '</li>' + '</ul></td></tr>' )
+
+	## Commodity list
+	htmlCommodity = ''
+	for c in TrackCommodity:
+		htmlCommodity += '<li style="background:#D9D9D9;padding:8px;margin:2px">' + c.title() + '</li>'
+
+	htmlData += (
+		'<tr><td><ul style="list-style-type:none;display:flex;padding:0;margin:2px 0px 0px 0px">'
+		+ '<li style="background:#DE2600;color:#FFFFFF;font-weight:bold;padding:8px;margin:2px">COMMODITY</li>'
+		+ htmlCommodity + '</ul></td></tr>')
+
+	return htmlData
+
 def DrawTable1Rows(dateList, commodity):
-	htmlData = ''
 	sno = 1
 	day = datetime.datetime.strptime(dateList[0],'%d%b%Y').weekday()
+
+	### print Table1
+	htmlData = ('<br><div style="width:min-content;">'
+		+ '<h2 style="background:#DE2600;color:#FFFFFF;font-size:15px;font-weight:bold;padding:8px;margin:2px">' + str(len(dateList)) + ' day Data </h2>'
+		+ '<table style="border:1px solid black;" cellpadding="3px">'
+		+ '<tr style="text-align:center;background:#000000;color:#FFFFFF;vertical-align:middle;text-align: center;"><th>' + '</th><th>'.join(Table1Title) + '</th></tr>')
+
 	for date in dateList:
 		rowData = PrepareRowData(sno, date, commodity)
 
@@ -273,6 +332,7 @@ def DrawTable1Rows(dateList, commodity):
 	
 		sno += 1
 
+	htmlData += '</table></div>'
 	return htmlData
 
 
@@ -295,7 +355,11 @@ def DrawTable2Rows(commodity):
 		}
 	}
 
-	htmlData = ''
+	htmlData = ('<br><div style="width:min-content;">'
+		+ '<h2 style="background:#DE2600;color:#FFFFFF;font-size:15px;font-weight:bold;padding:8px;margin:2px">' +  ' Commodity BUY/SELL Calculation </h2>'
+		+ '<table style="border:1px solid black;" cellpadding="5px">'
+		+ '<tr style="text-align:center;background:#000000;color:#FFFFFF;vertical-align:middle;text-align: center;"><th>' + '</th><th>'.join(Table2Title) + '</th></tr>')
+
 	sno = 1
 	for c in TrackCommodity:
 		PriceNow = commodity[c]['now']
@@ -318,6 +382,8 @@ def DrawTable2Rows(commodity):
 				+ '<td style="text-align:center">{}</td></tr>'.format(formatT['name']))
 		sno += 1
 
+	htmlData += '</table></div></br></br>'
+
 	return htmlData
 
 def DrawTable3Log(commodity_HL_log):
@@ -337,87 +403,26 @@ def DrawTable3Log(commodity_HL_log):
 				htmlData += '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:green">{}</span><br/>'.format(price)
 
 			i += 1
-	htmlData += '<br/>'
+	htmlData += '<br/></div>'
 	return htmlData
 
 def DrawHTMLData(commodity, dateList, commodity_HL_log, arg):
 	## VijayMCX
-	htmlData = (
-		'<html><body style="Font:15px Ariel,sans-serif;text-align:center;color:#000000"><table cellpadding="0" style="border-collapse:collapse"><tr><td><div style="width:min-context;">'
-		+ '<div style="width:min-content;background:#000000">'
-		+ '<h1 style="letter-spacing:1px;font-weight:bold;font-size:40px;display:block;margin:0">&nbsp;'
-		+ '<span style="color:#DE2600">VIJAY</span><span style="color:#FFFFFF">MCX</span>&nbsp;</h1>'
-		+ '</div></td></tr>')
+	htmlData = '<html><body style="Font:15px Ariel,sans-serif;text-align:center;color:#000000">'
 
-	htmlData += '<tr><td><div style="width:min-content;">'
-
-	## DateTime when mail is sent
-	htmlData += (
-		'<ul style="list-style-type:none;display:flex;padding:0;margin:3px 0px 0px 0px">'
-		+ '<li style="background:#000000;color:#FFFFFF;font-weight:bold;padding:8px;margin:2px">Mailed&nbsp;Time</li>'
-		+ '<li style="background:#D9D9D9;padding:8px;margin:2px">'
-		+ now.strftime('%d%b%Y') + '</li>'
-		+ '<li style="background:#D9D9D9;padding:8px;margin:2px">'
-		+ now.strftime('%H:%M:%S') + '</li>' + '</ul></td></tr>')
-
-	## Date, Days, Percentage
-	htmlData += (
-		'<tr><td><ul style="list-style-type:none;display:flex;padding:0;margin:2px 0px 0px 0px">'
-		+ '<li style="background:#D9D9D9;padding:8px;margin:2px">'
-		+ datetime.datetime.strptime(arg['Date'],'%d%b%Y').strftime('%A') + '</li>' 
-		+ '<li style="background:#D9D9D9;padding:8px;margin:2px">'
-		+ arg['Date'] + '</li>'
-		+ '<li style="background:#D9D9D9;padding:8px;margin:2px">'
-		+ arg['days'] + '&nbsp;days' + '</li>'
-		+ '<li style="background:#D9D9D9;padding:8px;margin:2px">'
-		+ arg['percent'] + '%' + '</li>' 
-		+ '<li style="background:#DE2600;color:#FFFFFF;font-weight:bold;padding:8px;margin:2px">'
-		+ arg['by'] + '</li>' 
-		+ '</ul></td></tr>') 
-
-	## Url
-	htmlData += (
-		'<tr><td><ul style="list-style-type:none;display:flex;padding:0;margin:2px 0px 0px 0px">'
-		+ '<li style="background:#000000;color:#FFFFFF;font-weight:bold;padding:8px;margin:2px">Url</li>'
-		+ '<li style="background:#D9D9D9;padding:8px;margin:2px">'
-		+ '<a style="color:#000000;font-size:15px;text-decoration:none;" href="' + link + '">' + link + '</a>' + '</li>' + '</ul></td></tr>' )
-
-	## Commodity list
-	htmlCommodity = ''
-	for c in TrackCommodity:
-		htmlCommodity += '<li style="background:#D9D9D9;padding:8px;margin:2px">' + c.title() + '</li>'
-
-	htmlData += (
-		'<tr><td><ul style="list-style-type:none;display:flex;padding:0;margin:2px 0px 0px 0px">'
-		+ '<li style="background:#DE2600;color:#FFFFFF;font-weight:bold;padding:8px;margin:2px">COMMODITY</li>' + htmlCommodity + '</ul></td></tr>')
-
-
-	### print Table1
-	htmlData += ('<br><div style="width:min-content;">'
-		+ '<h2 style="background:#DE2600;color:#FFFFFF;font-size:15px;font-weight:bold;padding:8px;margin:2px">' + str(len(dateList)) + ' day Data </h2>'
-		+ '<table style="border:1px solid black;" cellpadding="3px">'
-		+ '<tr style="text-align:center;background:#000000;color:#FFFFFF;vertical-align:middle;text-align: center;"><th>' + '</th><th>'.join(Table1Title) + '</th></tr>')
+	### Draw header
+	htmlData += DrawHTMLHeader(arg)
 
 	### Generates rows for Table1
 	htmlData += DrawTable1Rows(dateList, commodity)
 
-	htmlData += '</table></div>'
-
-
-	### print Table2
-	htmlData += ('<br><div style="width:min-content;">'
-		+ '<h2 style="background:#DE2600;color:#FFFFFF;font-size:15px;font-weight:bold;padding:8px;margin:2px">' +  ' Commodity BUY/SELL Calculation </h2>'
-		+ '<table style="border:1px solid black;" cellpadding="5px">'
-		+ '<tr style="text-align:center;background:#000000;color:#FFFFFF;vertical-align:middle;text-align: center;"><th>' + '</th><th>'.join(Table2Title) + '</th></tr>')
-
 	### Generate row for Table2
 	htmlData += DrawTable2Rows(commodity)
-	htmlData += '</table></div></br></br>'
 
 	### Generate table for log
 	htmlData += DrawTable3Log(commodity_HL_log)
-
-	htmlData += '</div></body></html>'
+	
+	htmlData += '</body></html>'
 
 	#print (htmlData)	
 	
