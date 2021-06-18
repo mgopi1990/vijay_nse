@@ -386,6 +386,24 @@ def DrawTable2Rows(commodity):
 
 	return htmlData
 
+def DrawTable4Zerodha():
+	#htmlData = ('<br><div style="width:min-content;">'
+	#   + '<h2 style="background:#DE2600;color:#FFFFFF;font-size:15px;font-weight:bold;padding:8px;margin:2px">'
+	#   +  ' ZERODHA Commodity </h2>'
+	#   + '<table style="border:1px solid black;" cellpadding="5px">'
+	#   + '<tr style="text-align:center;background:#000000;color:#FFFFFF;vertical-align:middle;text-align: center;"><th>' + '</th><th>'.join(Table4Title) + '</th></tr>')
+	
+	htmlData = ('<br><div style="width:min-content;">'
+		+ '<h2 style="background:#DE2600;color:#FFFFFF;font-size:15px;font-weight:bold;padding:8px;margin:2px">'
+		+  ' ZERODHA Commodity </h2>'
+		+ '<table style="border:1px solid black;" cellpadding="5px">'
+		+ '<tr style="text-align:center;background:#000000;color:#FFFFFF;vertical-align:middle;text-align: center;"><th>'
+		+ '<a href="https://zerodha.com/margin-calculator/Commodity/">https://zerodha.com/margin-calculator/Commodity/</a>'
+		+ '</th></tr>')
+	
+	htmlData += '</table></div></br></br>'
+	return htmlData
+
 def DrawTable3Log(commodity_HL_log):
 	htmlData = '<div style="text-align:left;">'
 	for k in TrackCommodity:
@@ -418,6 +436,9 @@ def DrawHTMLData(commodity, dateList, commodity_HL_log, arg):
 
 	### Generate row for Table2
 	htmlData += DrawTable2Rows(commodity)
+
+	### Generate Table4 Zerodha
+	htmlData += DrawTable4Zerodha()
 
 	### Generate table for log
 	htmlData += DrawTable3Log(commodity_HL_log)
