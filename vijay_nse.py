@@ -59,7 +59,7 @@ TrackCommodity = ('GOLDM', 'SILVERM', 'ALUMINIUM', 'COPPER',
 
 ## Title for Table1 and Table2
 Table1Title = ('Sno', 'Date') + TrackCommodity
-Table2Title = ('Sno', 'Commodity', 'Low', 'High', 'LowLimit', 'UpLimit', 
+Table2Title = ('Sno', 'Commodity', '3M-Low', '3M-High', 'LowLimit', 'UpLimit', 
 				'now', 'Percent%', 'Call')
 #def vijay_nse():
 # nse = Nse()
