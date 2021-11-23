@@ -440,8 +440,11 @@ def DrawHTMLData(commodity, dateList, commodity_HL_log, arg):
 	### Generate Table4 Zerodha
 	htmlData += DrawTable4Zerodha()
 
+	### ToDo: uncomment later.
+	### Temporarily blocking Table3 
+	### As it is causing gmail app to crash
 	### Generate table for log
-	htmlData += DrawTable3Log(commodity_HL_log)
+	#htmlData += DrawTable3Log(commodity_HL_log)
 	
 	htmlData += '</body></html>'
 
