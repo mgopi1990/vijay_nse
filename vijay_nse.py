@@ -82,7 +82,7 @@ Table2Title = ('Sno', 'Commodity', '3M-Low', '3M-High', 'LowLimit', 'UpLimit',
 
 
 # parses commodity data from http://market.mcxdata.in/
-link = 'http://market.mcxdata.in/'
+link = 'http://mcxdata.in/'
 def vijay_mcx():
 
  # to handle ssl certificate related errors
