@@ -431,21 +431,20 @@ def DrawHTMLData(commodity, dateList, commodity_HL_log, arg):
 	### Draw header
 	htmlData += DrawHTMLHeader(arg)
 
-	### Generates rows for Table1
-	htmlData += DrawTable1Rows(dateList, commodity)
-
-	### Generate row for Table2
-	htmlData += DrawTable2Rows(commodity)
-
-	### Generate Table4 Zerodha
-	htmlData += DrawTable4Zerodha()
-
-	### ToDo: uncomment later.
-	### Temporarily blocking Table3 
-	### As it is causing gmail app to crash
-	### Generate table for log
-	#htmlData += DrawTable3Log(commodity_HL_log)
+	if (arg['mail_index'] == 1):
+		### Generates rows for Table1
+		htmlData += DrawTable1Rows(dateList, commodity)
 	
+		### Generate row for Table2
+		htmlData += DrawTable2Rows(commodity)
+	
+		### Generate Table4 Zerodha
+		htmlData += DrawTable4Zerodha()
+		
+	elif (arg['mail_index'] == 2):
+		## summary table
+		htmlData += DrawTable3Log(commodity_HL_log)
+		
 	htmlData += '</body></html>'
 
 	#print (htmlData)	
@@ -581,6 +580,8 @@ def send_mail(message, extraMailIds = []):
 
 
 def mail_text_table(commodity, dateList, commodity_HL_log, arg):
+	## send the 1st mail
+	arg['mail_index'] = 1
 	htmlData = DrawHTMLData(commodity, dateList, commodity_HL_log, arg)
 
 	message = MIMEMultipart('alternative')
@@ -591,6 +592,20 @@ def mail_text_table(commodity, dateList, commodity_HL_log, arg):
 	#print (message.as_string())
 
 	send_mail(message, arg['mailids'])
+
+	## send the 2nd mail
+	arg['mail_index'] = 2
+	htmlData = DrawHTMLData(commodity, dateList, commodity_HL_log, arg)
+
+	message = MIMEMultipart('alternative')
+	message['Subject'] = (' VijayMCX PastData Date: ' + arg['Date'] 
+							+ ' days: ' + arg['days'] 
+							+ ' percent: ' + arg['percent'])
+	message.attach(MIMEText(htmlData, "html"))
+	#print (message.as_string())
+
+	send_mail(message, arg['mailids'])
+
 
 	return
 
