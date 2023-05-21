@@ -144,7 +144,11 @@ def vijay_calc_high_low(commodity, percent):
 		## data was missing (NA) entries will be
 		## automatically ignored. Good thing.
 		dateList = list(commodity[k].keys())
-
+	
+		## remove 'now' as all other data are numeric values
+		if commodity[k]['now'] == 'NA':
+			dateList.remove('now')
+		
 		## Find High Low
 		commodity[k]['High'] = commodity[k][dateList[0]]
 		commodity[k]['Low']  = commodity[k][dateList[0]]
@@ -171,16 +175,23 @@ def vijay_calc_high_low(commodity, percent):
 			## To avoid divide by zero exception
 			deno += 0.000001
 
-		## Use Vijay's secret formula
-		## R1 -> High
-		## R2 -> Low
-		## R3 -> now
-		## Percent = ((R3-R2)/(R1-R2))*100
-		commodity[k]['VijayPercent'] = (commodity[k]['now'] - low)/deno * 100
+		if commodity[k]['now'] == 'NA':
+			commodity[k]['VijayPercent'] = 'NA'
+		else:
+			## Use Vijay's secret formula
+			## R1 -> High
+			## R2 -> Low
+			## R3 -> now
+			## Percent = ((R3-R2)/(R1-R2))*100
+			commodity[k]['VijayPercent'] = (commodity[k]['now'] - low)/deno * 100
 	
 def UpdateCommodity(commodity, commodity_now):
 	for c in TrackCommodity:
-		commodity[c]['now'] = float(commodity_now[c]['Price'])
+		if c in commodity_now.keys():
+			commodity[c]['now'] = float(commodity_now[c]['Price'])
+		else:
+			## incase the commodity is not scrapped properly
+			commodity[c]['now'] = 'NA'
 
 def PrepareRowData(sno, date, commodity):
 	rowData = []
@@ -363,12 +374,19 @@ def DrawTable2Rows(commodity):
 	sno = 1
 	for c in TrackCommodity:
 		PriceNow = commodity[c]['now']
-		if PriceNow >= commodity[c]['VijayUpLimit']:
-			formatT = FormatTable['Sell']
-		elif PriceNow <= commodity[c]['VijayLowLimit']:
-			formatT = FormatTable['Buy']
-		else:
+		if PriceNow == 'NA':
 			formatT = FormatTable['None']
+			PriceStr = '<td>{}</td>'.format(PriceNow)
+			VijayPercentStr = '<td>{}</td>'.format(commodity[c]['VijayPercent'])
+		else:
+			if PriceNow >= commodity[c]['VijayUpLimit']:
+				formatT = FormatTable['Sell']
+			elif PriceNow <= commodity[c]['VijayLowLimit']:
+				formatT = FormatTable['Buy']
+			else:
+				formatT = FormatTable['None']
+			PriceStr = '<td>{0:0.2f}</td>'.format(PriceNow)
+			VijayPercentStr = '<td>{0:0.2f}%</td>'.format(commodity[c]['VijayPercent'])
 
 		htmlData += ('<tr class="{}" style="background:{};vertical-align:top;text-align:right;">'.format(formatT['classname'],formatT['bgcolor'])
 				+ '<td style="text-align:center">' + str(sno) + '</td>'
@@ -377,8 +395,7 @@ def DrawTable2Rows(commodity):
 				+ '<td title="{0}">{1:0.2f}</td>'.format(commodity[c]['HighDate'],commodity[c]['High'])
 				+ '<td>{0:0.2f}</td>'.format(commodity[c]['VijayLowLimit'])
 				+ '<td>{0:0.2f}</td>'.format(commodity[c]['VijayUpLimit'])
-				+ '<td>{0:0.2f}</td>'.format(PriceNow)
-				+ '<td>{0:0.2f}%</td>'.format(commodity[c]['VijayPercent'])
+				+ PriceStr + VijayPercentStr
 				+ '<td style="text-align:center">{}</td></tr>'.format(formatT['name']))
 		sno += 1
 
@@ -474,35 +491,45 @@ def print_text_table(commodity, dateList, commodity_HL_log, arg):
 	t2.title='Commodity BUY/SELL Calculation'
 	for c in TrackCommodity:
 		PriceNow = commodity[c]['now']
-		if PriceNow >= commodity[c]['VijayUpLimit']:
-			t2.add_row([colored(str(sno), 'red'), 
-							colored(c, 'red'), 
-							colored(('%0.2f'%commodity[c]['Low']), 'red'), 
-							colored(('%0.2f'%commodity[c]['High']), 'red'),   
-							colored(('%0.2f'%commodity[c]['VijayLowLimit']), 'red'),  
-							colored(('%0.2f'%commodity[c]['VijayUpLimit']), 'red'),
-							colored(('%0.2f'%PriceNow), 'red'),
-							colored(('%0.2f'%commodity[c]['VijayPercent'] + '%'), 'red'),
-							colored('SELL', 'red')])
-		elif PriceNow <= commodity[c]['VijayLowLimit']:
-			t2.add_row([colored(str(sno), 'green'), 
-							colored(c, 'green'), 
-							colored(('%0.2f'%commodity[c]['Low']), 'green'), 
-							colored(('%0.2f'%commodity[c]['High']), 'green'),   
-							colored(('%0.2f'%commodity[c]['VijayLowLimit']), 'green'),  
-							colored(('%0.2f'%commodity[c]['VijayUpLimit']), 'green'),
-							colored(('%0.2f'%PriceNow), 'green'),
-							colored(('%0.2f'%commodity[c]['VijayPercent'] + '%'), 'green'),
-							colored('BUY', 'green')])
-		else:	
+		if PriceNow == 'NA':
 			t2.add_row([str(sno), c, 
-						('%0.2f'%commodity[c]['Low']), 
-						('%0.2f'%commodity[c]['High']), 
-						('%0.2f'%commodity[c]['VijayLowLimit']), 
-						('%0.2f'%commodity[c]['VijayUpLimit']),
-						('%0.2f'%PriceNow), 
-						('%0.2f'%commodity[c]['VijayPercent'] + '%'),
-						''])
+					('%0.2f'%commodity[c]['Low']), 
+					('%0.2f'%commodity[c]['High']), 
+					('%0.2f'%commodity[c]['VijayLowLimit']), 
+					('%0.2f'%commodity[c]['VijayUpLimit']),
+					('NA'), 
+					('NA'),
+					''])
+		else:
+			if PriceNow >= commodity[c]['VijayUpLimit']:
+				t2.add_row([colored(str(sno), 'red'), 
+					colored(c, 'red'), 
+					colored(('%0.2f'%commodity[c]['Low']), 'red'), 
+					colored(('%0.2f'%commodity[c]['High']), 'red'),   
+					colored(('%0.2f'%commodity[c]['VijayLowLimit']), 'red'),  
+					colored(('%0.2f'%commodity[c]['VijayUpLimit']), 'red'),
+					colored(('%0.2f'%PriceNow), 'red'),
+					colored(('%0.2f'%commodity[c]['VijayPercent'] + '%'), 'red'),
+					colored('SELL', 'red')])
+			elif PriceNow <= commodity[c]['VijayLowLimit']:
+				t2.add_row([colored(str(sno), 'green'), 
+					colored(c, 'green'), 
+					colored(('%0.2f'%commodity[c]['Low']), 'green'), 
+					colored(('%0.2f'%commodity[c]['High']), 'green'),   
+					colored(('%0.2f'%commodity[c]['VijayLowLimit']), 'green'),  
+					colored(('%0.2f'%commodity[c]['VijayUpLimit']), 'green'),
+					colored(('%0.2f'%PriceNow), 'green'),
+					colored(('%0.2f'%commodity[c]['VijayPercent'] + '%'), 'green'),
+					colored('BUY', 'green')])
+			else:	
+				t2.add_row([str(sno), c, 
+							('%0.2f'%commodity[c]['Low']), 
+							('%0.2f'%commodity[c]['High']), 
+							('%0.2f'%commodity[c]['VijayLowLimit']), 
+							('%0.2f'%commodity[c]['VijayUpLimit']),
+							('%0.2f'%PriceNow), 
+							('%0.2f'%commodity[c]['VijayPercent'] + '%'),
+							''])
 		sno += 1
 	print(t2.get_string() + '\n\n')
 
